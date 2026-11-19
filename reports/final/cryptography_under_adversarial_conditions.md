@@ -36,7 +36,7 @@ This is an empirical implementation study. Passing a finite set of tests does no
 
 ### 2.2 Inputs, blocks, and environment
 
-No external dataset was scraped. The runners generated seeded pseudo-random byte buffers before timing and saved measured observations to CSV. The five payload sizes were 1 KiB, 10 KiB, 100 KiB, 1 MiB, and 10 MiB (1,024 through 10,485,760 bytes). Within each block and size, schemes in a category received the same bytes. Cryptographic keys and nonce/IV values used cryptographic randomness, independent of experimental seeds.
+No external dataset was scraped. Hashing RQ1 and RQ3 generated seeded pseudo-random byte buffers before timing; Hashing RQ2 used a deterministic repeated 0–255 byte pattern for its functional checks. The Symmetric and Asymmetric runners generated seeded pseudo-random payload buffers. The five payload sizes were 1 KiB, 10 KiB, 100 KiB, 1 MiB, and 10 MiB (1,024 through 10,485,760 bytes). Within each block and size, schemes in a category received the same bytes. Cryptographic keys and nonce/IV values used cryptographic randomness, independent of experimental seeds.
 
 Each performance experiment used 30 complete blocks, five warm-ups excluded from measured CSVs, and randomized condition order within blocks. Raw sample counts were 450 Hashing RQ1 observations, 900 Symmetric, and 900 Asymmetric hybrid. Warm-up exposure differed: Hashing and Asymmetric warmed each condition before measured blocks; Symmetric warmed each condition within each block. This is a cross-category comparability limitation.
 

@@ -4,12 +4,12 @@ The module reads the existing raw benchmark and writes a separate set of
 statistical results. It never edits benchmark observations or previous outputs.
 """
 
-import argparse
 import csv
 import hashlib
 import json
 import math
 import platform
+import statistics
 import sys
 from pathlib import Path
 
@@ -28,6 +28,19 @@ from hashing.randomized_block_runner import BLOCK_COUNT, RAW_FIELDS
 
 DEFAULT_ALPHA = 0.05
 MIB_BYTES = 1024 * 1024
+DESCRIPTIVE_NAME = "hashing_randomized_block_descriptive.csv"
+DESCRIPTIVE_FIELDS = (
+    "Algorithm",
+    "Input size (KiB)",
+    "Input size (MiB)",
+    "Observations",
+    "Mean time (seconds)",
+    "Median time (seconds)",
+    "Standard deviation (seconds)",
+    "Minimum time (seconds)",
+    "Maximum time (seconds)",
+    "Throughput (MiB/s)",
+)
 ANOVA_NAME = "hashing_repeated_measures_anova.csv"
 FRIEDMAN_NAME = "hashing_repeated_measures_friedman.csv"
 POSTHOC_NAME = "hashing_repeated_measures_posthoc.csv"
@@ -486,6 +499,46 @@ def _write_csv(path: Path, fields: tuple[str, ...], rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
+def _descriptive_row(algorithm: str, size_bytes: int, values: list[float]) -> dict:
+    """Build the descriptive row used by the final report, retaining its CSV schema."""
+    mean_time = statistics.mean(values)
+    return {
+        "Algorithm": algorithm,
+        "Input size (KiB)": size_bytes / 1024,
+        "Input size (MiB)": size_bytes / MIB_BYTES,
+        "Observations": len(values),
+        "Mean time (seconds)": mean_time,
+        "Median time (seconds)": statistics.median(values),
+        "Standard deviation (seconds)": statistics.stdev(values),
+        "Minimum time (seconds)": min(values),
+        "Maximum time (seconds)": max(values),
+        "Throughput (MiB/s)": (size_bytes / MIB_BYTES) / mean_time,
+    }
+
+
+def write_descriptive_statistics(
+    input_csv: str | Path, output_dir: str | Path
+) -> Path:
+    """Write the report's descriptive CSV from a validated randomized-block CSV."""
+    records, _ = _load_and_validate(input_csv)
+    descriptive_rows = []
+    for algorithm, _ in ALGORITHMS:
+        for size_bytes in INPUT_SIZES:
+            values = [
+                row["Execution time in seconds"]
+                for row in records
+                if row["Algorithm"] == algorithm
+                and row["Input size in bytes"] == size_bytes
+            ]
+            descriptive_rows.append(_descriptive_row(algorithm, size_bytes, values))
+
+    target = Path(output_dir)
+    target.mkdir(parents=True, exist_ok=True)
+    descriptive_path = target / DESCRIPTIVE_NAME
+    _write_csv(descriptive_path, DESCRIPTIVE_FIELDS, descriptive_rows)
+    return descriptive_path
+
+
 def _write_diagnostic_plot(path: Path, residuals_by_algorithm: dict[str, np.ndarray]) -> None:
     figure, axes = plt.subplots(1, len(ALGORITHMS), figsize=(14, 4.5))
     for axis, (algorithm, _) in zip(axes, ALGORITHMS):
@@ -772,28 +825,3 @@ def analyze_repeated_measures(
         json.dump(summary, summary_file, indent=2, allow_nan=False)
         summary_file.write("\n")
     return summary["generated_files"]
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run repeated-measures and block-aware hashing analysis."
-    )
-    parser.add_argument(
-        "--input-csv",
-        type=Path,
-        default=Path("results/hashing/rq1/randomized_block") / "hashing_randomized_block_benchmarks.csv",
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path("results/hashing/rq1/randomized_block/repeated_measures/analysis/new_run"),
-    )
-    parser.add_argument("--alpha", type=float, default=DEFAULT_ALPHA)
-    args = parser.parse_args()
-    files = analyze_repeated_measures(args.input_csv, args.output_dir, args.alpha)
-    for name, path in files.items():
-        print(f"{name}: {path}")
-
-
-if __name__ == "__main__":
-    main()

@@ -203,14 +203,24 @@ def run_rq1(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(description="Run symmetric RQ1, RQ2, or RQ3.")
+    parser.add_argument("experiment", choices=("rq1", "rq2", "rq3"))
     parser.add_argument("--output-dir", type=Path, default=None)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--blocks", type=int, default=MEASURED_BLOCKS)
     args = parser.parse_args()
-    raw_path, metadata_path = run_rq1(args.output_dir, seed=args.seed, blocks=args.blocks)
-    print(f"Raw observations: {raw_path}")
-    print(f"Metadata: {metadata_path}")
+
+    if args.experiment == "rq1":
+        paths = run_rq1(args.output_dir, seed=args.seed, blocks=args.blocks)
+    else:
+        from symmetric.adversarial_runner import run_rq2, run_rq3
+
+        if args.experiment == "rq2":
+            paths = run_rq2(args.output_dir, seed=args.seed)
+        else:
+            paths = run_rq3(args.output_dir, seed=args.seed, blocks=args.blocks)
+    print(f"Raw observations: {paths[0]}")
+    print(f"Metadata: {paths[1]}")
 
 
 if __name__ == "__main__":

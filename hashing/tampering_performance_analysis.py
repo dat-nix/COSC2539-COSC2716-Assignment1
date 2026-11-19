@@ -1,6 +1,5 @@
 """Analyze matched-block hashing verification timings and outcomes."""
 
-import argparse
 import csv
 import hashlib
 import hmac
@@ -589,38 +588,3 @@ def analyze_tampering_performance(
         json.dump(summary, summary_file, indent=2, allow_nan=False)
         summary_file.write("\n")
     return summary["generated_files"]
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Analyze matched tampering-verification performance observations."
-    )
-    parser.add_argument(
-        "--input-csv",
-        type=Path,
-        default=Path("results/hashing/rq3/tampering_performance") / RAW_CSV_NAME,
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path("results/hashing/rq3/tampering_performance/analysis/new_run"),
-    )
-    parser.add_argument("--seed", type=int, default=55)
-    parser.add_argument("--permutations", type=int, default=PERMUTATIONS)
-    parser.add_argument("--minimum-blocks", type=int, default=30)
-    parser.add_argument("--metadata", type=Path, default=None)
-    args = parser.parse_args()
-    files = analyze_tampering_performance(
-        args.input_csv,
-        args.output_dir,
-        seed=args.seed,
-        permutation_count=args.permutations,
-        minimum_blocks=args.minimum_blocks,
-        metadata_path=args.metadata,
-    )
-    for name, path in files.items():
-        print(f"{name}: {path}")
-
-
-if __name__ == "__main__":
-    main()

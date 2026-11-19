@@ -64,34 +64,32 @@ Run the hashing unit tests from the project root with:
 python3 -m unittest discover -s tests -v
 ```
 
-## Hashing experiment runner
+## Hashing experiments
 
-From the project root, run:
+Use one command entry point for all three reported Hashing questions. Select a
+new output directory for each experiment run:
 
 ```sh
-python3 -m hashing.experiment_runner --output-dir results/hashing/rq1/runs/new_run
+python3 -m hashing.experiment_runner rq1 \
+  --output-dir results/hashing/rq1/randomized_block/runs/new_run \
+  --seed 20261118
+python3 -m hashing.experiment_runner rq2 \
+  --output-dir results/hashing/rq2/runs/new_run
+python3 -m hashing.experiment_runner rq3 \
+  --output-dir results/hashing/rq3/tampering_performance/runs/new_run \
+  --seed 20261118
 ```
 
-The runner creates deterministic byte inputs of 1 KiB, 10 KiB, 100 KiB, 1 MiB,
-and 10 MiB (1024 bytes per KiB). It uses the same input for SHA-256, SHA3-256,
-and BLAKE2b-256 at each size, performs 5 warm-ups and 30 timed repetitions per
-algorithm and size, and writes results under the selected output directory:
-
-- `hashing_benchmarks.csv` contains every measured repetition, including its
-  digest and elapsed time. Only the hash call is inside the timed interval;
-  input creation, digest formatting, and CSV writing are outside it.
-- `hashing_tampering.csv` records two checks per algorithm and size. The
-  trusted-digest scenario detects a changed input. In the second scenario, the
-  changed input is accompanied by a newly computed unkeyed digest, so the check
-  passes and cannot detect that the data was changed. Each row includes both
-  the original trusted digest and the digest used for that check.
-- `hashing_metadata.json` records Python and platform details and the
-  experiment configuration.
-
-The command writes into the selected run directory; choose an unused directory
-for each new measurement. The saved historical sequential results are kept in
-`results/hashing/rq1/baseline/`. The CSV timings are measurements from the machine
-running the command, not expected or pre-filled results.
+RQ1 uses 30 randomized complete blocks, five shuffled warm-ups, and 30 measured
+observations per algorithm-size condition. The three algorithms receive the
+same seeded pseudo-random input within each block and size. The timer surrounds
+only the digest call. RQ2 records one functional check for each of 3 algorithms
+× 5 sizes × 2 scenarios; its input is a deterministic repeated byte pattern.
+The trusted-digest comparison rejects modified data, while an attacker-recomputed
+unkeyed digest matches it and does not authenticate its source. RQ3 records
+1,350 matched timing observations; input and digest preparation are outside the
+timed hash-and-compare operation. Historical sequential baseline results remain
+archived under `results/hashing/rq1/baseline/`.
 
 ## Hashing tampering-verification performance
 
@@ -103,7 +101,7 @@ The new experiment writes separate files and does not overwrite either result.
 Run the matched randomized-block experiment with:
 
 ```sh
-python3 -m hashing.tampering_performance_runner \
+python3 -m hashing.experiment_runner rq3 \
   --output-dir results/hashing/rq3/tampering_performance/runs/new_run \
   --seed 20261118
 ```
@@ -137,7 +135,7 @@ protected from overwrite; use a new output directory for another run.
 Analyze the raw timings without rerunning the experiment:
 
 ```sh
-python3 -m hashing.tampering_performance_analysis \
+python3 -m hashing.statistical_analysis rq3 \
   --input-csv results/hashing/rq3/tampering_performance/runs/new_run/hashing_tampering_performance.csv \
   --output-dir results/hashing/rq3/tampering_performance/analysis/new_run \
   --seed 55 \
@@ -229,110 +227,17 @@ trend shows that timings were not stationary over the run. It does not
 establish whether the drift was caused by environment or carry-over, and it
 does not remove the no-interference assumption needed for the randomized test.
 
-## Hashing statistical analysis
-
-Install the analysis dependencies and analyze the existing raw benchmark file:
-
-```sh
-python3 -m pip install -r requirements/analysis.txt
-python3 -m hashing.statistical_analysis \
-  --input-csv results/hashing/rq1/baseline/hashing_benchmarks.csv \
-  --output-dir results/hashing/rq1/analysis/new_run
-```
-
-The analysis reads but does not rewrite the benchmark CSV. It creates
-`hashing_descriptive_statistics.csv`, `hashing_anova_results.csv`,
-`hashing_analysis_summary.json`, and `hashing_execution_time.png` in the output
-directory. Sizes and throughput use binary units (KiB and MiB). Standard
-deviations are sample standard deviations, and throughput is MiB divided by
-mean execution time.
-
-This command analyzes the original sequential benchmark CSV. Its independent-
-groups analyses do not apply to the newer randomized-block CSV below. The
-module runs separate one-way ANOVAs for each algorithm, Shapiro-Wilk tests
-on within-size residuals, and median-centered Levene tests. Tukey HSD is only
-run when those diagnostics do not reject normality or equal variance and the
-omnibus ANOVA is significant. If diagnostics fail, the summary reports a
-Welch ANOVA or Kruskal-Wallis alternative as appropriate; these alternatives
-still require independent observations. The ANOVA result only tests whether
-at least one group mean differs and cannot identify the differing groups.
-
-The 30 observations per configuration reuse one input and are sequential
-timings, so independence and temporal autocorrelation are not established.
-The input content is also one repeated byte pattern. Interpret inferential
-results as exploratory and disclose these limitations; no outliers are
-silently removed.
-
-## Randomized-block hashing experiment
-
-The revised runner writes to a new directory so it does not replace the
-original `results/hashing/rq1/baseline/hashing_benchmarks.csv` or the original
-analysis outputs:
-
-```sh
-python3 -m hashing.randomized_block_runner \
-  --output-dir results/hashing/rq1/randomized_block/runs/new_run \
-  --seed 20261118
-```
-
-It runs 30 complete blocks. Each block contains all 15 algorithm and input-size
-conditions in an independently shuffled order. The 75 warm-up calls (five per
-condition) are also shuffled individually and are not included in the raw CSV.
-For each block and size, one seeded pseudo-random input buffer is prepared
-before timing and shared by all three algorithms at that size. Each measured
-row includes its block, randomized position, repetition, input identifier,
-monotonic start/end times, execution time, and digest. The seed and machine
-metadata are saved in `hashing_randomized_block_metadata.json` beside the raw
-`hashing_randomized_block_benchmarks.csv`. The runner refuses to overwrite
-those files; choose a new output directory for another run.
-
-Analyze the new CSV with:
-
-```sh
-python3 -m hashing.randomized_block_analysis \
-  --input-csv results/hashing/rq1/randomized_block/runs/new_run/hashing_randomized_block_benchmarks.csv \
-  --output-dir results/hashing/rq1/randomized_block/analysis/new_run \
-  --seed 55 \
-  --permutations 9999
-```
-
-This creates `hashing_randomized_block_descriptive.csv`,
-`hashing_randomized_block_model.csv`,
-`hashing_randomized_block_pairwise.csv`,
-`hashing_randomized_block_summary.json`, and
-`hashing_randomized_block_diagnostics.png`. Analysis outputs are also protected
-from accidental overwrite.
-
-### How the block model works
-
-Input size is treated as a fixed five-level factor, while block terms account
-for conditions shared by the measurements in each block. The parametric model
-also includes randomized position as a linear covariate. A restricted
-randomization test shuffles size labels only within each block and is reported
-alongside the parametric randomized-block F test. The summary includes
-partial eta-squared and omega-squared, residual Shapiro-Wilk and Levene tests,
-position and time-order diagnostics, and Holm-adjusted pairwise contrasts
-with simultaneous confidence intervals only when the omnibus result and
-residual diagnostics support them. No outliers are automatically removed.
-
-Randomizing order reduces systematic association between a condition and its
-position, but does not guarantee independent observations or blocks. The
-blocks still run sequentially in one process and can share thermal or system
-load drift. The position term models only a linear within-block trend. Results
-also reflect seeded pseudo-random input content, one machine, and timing
-overhead that is substantial for 1 KiB inputs. Report these limits and do not
-interpret a small p-value as proof of a security advantage.
-
 ## COSC2539 repeated-measures analysis
 
-Use the existing randomized-block CSV. This analysis writes to a new directory
-and does not rerun the benchmark or overwrite the earlier blocked-model results:
+Use the existing randomized-block CSV. This command produces the descriptive
+CSV used by the report together with repeated-measures statistics and does not
+rerun the benchmark:
 
 ```sh
 python3 -m pip install -r requirements/analysis.txt
-python3 -m hashing.repeated_measures_analysis \
+python3 -m hashing.statistical_analysis rq1 \
   --input-csv results/hashing/rq1/randomized_block/hashing_randomized_block_benchmarks.csv \
-  --output-dir results/hashing/rq1/randomized_block/repeated_measures/analysis/new_run \
+  --output-dir results/hashing/rq1/randomized_block/analysis/new_run \
   --alpha 0.05
 ```
 
@@ -366,11 +271,9 @@ the probability that one size ranks faster. These pairwise tests concern rank
 direction, not mean time differences. They assume blocks are sufficiently
 independent; sequential runs do not guarantee that assumption.
 
-The existing repeated-measures outputs are archived under
-`results/hashing/rq1/randomized_block/repeated_measures/`. New analysis outputs use
-the selected `--output-dir`, for example
-`results/hashing/rq1/randomized_block/repeated_measures/analysis/new_run/`:
+The analysis outputs use the selected `--output-dir`:
 
+- `hashing_randomized_block_descriptive.csv`
 - `hashing_repeated_measures_anova.csv`
 - `hashing_repeated_measures_friedman.csv`
 - `hashing_repeated_measures_posthoc.csv`
@@ -378,20 +281,10 @@ the selected `--output-dir`, for example
 - `hashing_repeated_measures_diagnostics.png`
 
 The JSON records the raw CSV SHA-256, analysis parameters, and Python,
-NumPy, SciPy, and Matplotlib versions. The prior descriptive statistics,
-block-plus-position model, restricted permutation results, and diagnostics
-remain in `results/hashing/rq1/randomized_block/`. Neither ANOVA nor Friedman is evidence
-of a security advantage; report the measured timing scope, assumption failures,
-and possible temporal dependence.
-
-The existing `execution_time ~ input_size + block + randomized_position`
-analysis is a fixed-block regression with a position covariate. Its position
-adjustment means its parametric test is not the same model as the one-way
-repeated-measures ANOVA. In this balanced design, the fixed-block model without
-the position term has the same uncorrected input-size F test as the classical
-repeated-measures ANOVA. The existing restricted permutation result is a
-separate design-based test; it does not become an ANOVA because it uses an F
-statistic.
+NumPy, SciPy, and Matplotlib versions. Historical blocked-model outputs remain
+archived but are not part of the final report's primary analysis. Neither ANOVA
+nor Friedman is evidence of a security advantage; disclose the assumption
+failures and possible temporal dependence.
 
 ## Asymmetric-based hybrid encryption
 
@@ -406,9 +299,9 @@ This package implements exactly three schemes:
 
 The implementation is in `asymmetric/`. `common.py` defines the in-memory
 envelope and normalized result types. Each scheme has a separate implementation
-module. `experiment_runner.py` runs RQ1, `adversarial_runner.py` runs the RQ2
-outcome matrix and RQ3 verification timings, and `statistical_analysis.py`
-analyzes each raw dataset. Install dependencies with:
+module. The consolidated command `python -m asymmetric.experiment_runner rq1|rq2|rq3`
+runs the corresponding experiment; `statistical_analysis.py` analyzes each
+raw dataset. Install dependencies with:
 
 ```sh
 python3 -m pip install -r requirements/asymmetric.txt
@@ -436,7 +329,7 @@ Run RQ1 explicitly with:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/tmp/cosc2539-mpl \
-  .venv/bin/python -u -m asymmetric.experiment_runner \
+  .venv/bin/python -u -m asymmetric.experiment_runner rq1 \
   --output-dir results/asymmetric/rq1/runs/run_20261119_01
 ```
 
@@ -528,7 +421,7 @@ Run RQ2 explicitly with:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/tmp/cosc2539-mpl \
-  .venv/bin/python -u -m asymmetric.adversarial_runner rq2 \
+  .venv/bin/python -u -m asymmetric.experiment_runner rq2 \
   --output-dir results/asymmetric/rq2/runs/run_20261119_01
 ```
 
@@ -587,7 +480,7 @@ Run RQ3 explicitly with:
 
 ```sh
 PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/tmp/cosc2539-mpl \
-  .venv/bin/python -u -m asymmetric.adversarial_runner rq3 \
+  .venv/bin/python -u -m asymmetric.experiment_runner rq3 \
   --output-dir results/asymmetric/rq3/runs/run_20261119_01
 ```
 
@@ -696,7 +589,7 @@ scheme call only.
 Run RQ1 from the repository root:
 
 ```sh
-MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.experiment_runner \
+MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.experiment_runner rq1 \
   --output-dir results/symmetric/rq1/runs/run_20261119_01 \
   --seed 20261119
 ```
@@ -747,7 +640,7 @@ These examples are functional checks, not attack probabilities or proofs of
 security.
 
 ```sh
-MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.adversarial_runner rq2 \
+MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.experiment_runner rq2 \
   --output-dir results/symmetric/rq2/runs/run_20261119_01
 MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.statistical_analysis rq2 \
   --input-csv results/symmetric/rq2/runs/run_20261119_01/symmetric_rq2_outcomes.csv \
@@ -773,7 +666,7 @@ unpadding where reached. It does not isolate authentication overhead or include
 the attacker's time to modify data or obtain a wrong key.
 
 ```sh
-MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.adversarial_runner rq3 \
+MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.experiment_runner rq3 \
   --output-dir results/symmetric/rq3/runs/run_20261119_02
 MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m symmetric.statistical_analysis rq3 \
   --input-csv results/symmetric/rq3/runs/run_20261119_02/symmetric_rq3_verification.csv \

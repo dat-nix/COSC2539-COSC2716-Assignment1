@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
 import random
 import time
 from dataclasses import replace
@@ -422,22 +421,3 @@ def run_rq3(
         f"Completed at {utc_now()}\nMeasured observations: {len(rows)}\n", encoding="utf-8"
     )
     return raw_path, metadata_path
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("experiment", choices=("rq2", "rq3"))
-    parser.add_argument("--output-dir", type=Path, default=None)
-    parser.add_argument("--seed", type=int, default=None)
-    parser.add_argument("--blocks", type=int, default=MEASURED_BLOCKS)
-    args = parser.parse_args()
-    if args.experiment == "rq2":
-        raw, metadata = run_rq2(args.output_dir, seed=args.seed)
-    else:
-        raw, metadata = run_rq3(args.output_dir, seed=args.seed, blocks=args.blocks)
-    print(f"Raw observations: {raw}")
-    print(f"Metadata: {metadata}")
-
-
-if __name__ == "__main__":
-    main()

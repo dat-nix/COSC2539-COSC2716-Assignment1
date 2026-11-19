@@ -1,6 +1,5 @@
 """Measure hashing and digest-comparison time in tampering scenarios."""
 
-import argparse
 import csv
 import hashlib
 import hmac
@@ -315,28 +314,3 @@ def run_tampering_performance_experiment(
         json.dump(metadata, metadata_file, indent=2)
         metadata_file.write("\n")
     return raw_csv_path, metadata_path
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Measure hashing and digest-comparison time in tampering scenarios."
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path("results/hashing/rq3/tampering_performance/runs/new_run"),
-        help="separate output directory (default: results/hashing/rq3/tampering_performance/runs/new_run)",
-    )
-    parser.add_argument(
-        "--seed", type=int, default=DEFAULT_RANDOM_SEED, help="reproducible input/order seed"
-    )
-    args = parser.parse_args()
-    raw_path, metadata_path = run_tampering_performance_experiment(
-        args.output_dir, seed=args.seed
-    )
-    print(f"Raw verification timings: {raw_path}")
-    print(f"Environment metadata: {metadata_path}")
-
-
-if __name__ == "__main__":
-    main()

@@ -257,17 +257,40 @@ def run_rq1(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the RQ1 hybrid-encryption benchmark.")
-    parser.add_argument("--output-dir", type=Path, default=Path("results/asymmetric/rq1/runs/run_1"))
-    parser.add_argument("--seed", type=int, default=None, help="explicit seed (marks randomization as non-confirmatory)")
+    parser = argparse.ArgumentParser(description="Run asymmetric hybrid RQ1, RQ2, or RQ3.")
+    parser.add_argument("experiment", choices=("rq1", "rq2", "rq3"))
+    parser.add_argument("--output-dir", type=Path, default=None)
+    parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--blocks", type=int, default=MEASURED_BLOCKS)
     parser.add_argument("--rsa-key-size", type=int, default=DEFAULT_RSA_KEY_SIZE)
     args = parser.parse_args()
-    csv_path, metadata_path = run_rq1(
-        args.output_dir, seed=args.seed, blocks=args.blocks, rsa_key_size=args.rsa_key_size
+
+    output_dir = args.output_dir or (
+        Path("results/asymmetric") / args.experiment / "runs" / "run_1"
     )
-    print(csv_path)
-    print(metadata_path)
+    if args.experiment == "rq1":
+        paths = run_rq1(
+            output_dir,
+            seed=args.seed,
+            blocks=args.blocks,
+            rsa_key_size=args.rsa_key_size,
+        )
+    else:
+        from asymmetric.adversarial_runner import run_rq2, run_rq3
+
+        if args.experiment == "rq2":
+            paths = run_rq2(
+                output_dir, seed=args.seed, rsa_key_size=args.rsa_key_size
+            )
+        else:
+            paths = run_rq3(
+                output_dir,
+                seed=args.seed,
+                blocks=args.blocks,
+                rsa_key_size=args.rsa_key_size,
+            )
+    print(paths[0])
+    print(paths[1])
 
 
 if __name__ == "__main__":

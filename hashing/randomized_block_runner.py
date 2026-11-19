@@ -1,6 +1,5 @@
 """Run a reproducible randomized complete-block hashing experiment."""
 
-import argparse
 import csv
 import hashlib
 import json
@@ -180,29 +179,3 @@ def run_randomized_block_experiment(
         json.dump(metadata, metadata_file, indent=2)
         metadata_file.write("\n")
     return raw_csv_path, metadata_path
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Run a randomized complete-block hashing benchmark."
-    )
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path("results/hashing/rq1/randomized_block/runs/new_run"),
-        help="new output directory (default: results/hashing/rq1/randomized_block/runs/new_run)",
-    )
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=DEFAULT_RANDOM_SEED,
-        help=f"reproducible random seed (default: {DEFAULT_RANDOM_SEED})",
-    )
-    args = parser.parse_args()
-    raw_csv_path, metadata_path = run_randomized_block_experiment(args.output_dir, args.seed)
-    print(f"Randomized-block observations: {raw_csv_path}")
-    print(f"Environment and seed metadata: {metadata_path}")
-
-
-if __name__ == "__main__":
-    main()

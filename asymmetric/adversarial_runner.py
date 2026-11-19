@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
 import random
 import time
 from dataclasses import replace
@@ -395,30 +394,3 @@ def run_rq3(
         "created_utc": utc_now(),
     })
     return csv_path, metadata_path
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Run an asymmetric hybrid adversarial experiment.")
-    subparsers = parser.add_subparsers(dest="experiment", required=True)
-    for name in ("rq2", "rq3"):
-        subparser = subparsers.add_parser(name)
-        subparser.add_argument("--output-dir", type=Path, default=None)
-        subparser.add_argument("--seed", type=int, default=None)
-        if name == "rq3":
-            subparser.add_argument("--blocks", type=int, default=MEASURED_BLOCKS)
-        subparser.add_argument("--rsa-key-size", type=int, default=DEFAULT_RSA_KEY_SIZE)
-    args = parser.parse_args()
-    default_dir = Path("results/asymmetric") / args.experiment / "runs" / "run_1"
-    output_dir = args.output_dir or default_dir
-    if args.experiment == "rq2":
-        paths = run_rq2(output_dir, seed=args.seed, rsa_key_size=args.rsa_key_size)
-    else:
-        paths = run_rq3(
-            output_dir, seed=args.seed, blocks=args.blocks, rsa_key_size=args.rsa_key_size
-        )
-    print(paths[0])
-    print(paths[1])
-
-
-if __name__ == "__main__":
-    main()

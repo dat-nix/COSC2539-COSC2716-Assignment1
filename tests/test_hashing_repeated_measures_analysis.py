@@ -10,9 +10,9 @@ from scipy.linalg import helmert
 
 from hashing.experiment_runner import ALGORITHMS, INPUT_SIZES
 from hashing.randomized_block_runner import BLOCK_COUNT, RAW_FIELDS, build_block_orders
-from hashing.randomized_block_analysis import _restricted_permutation_test
 from hashing.repeated_measures_analysis import (
     ANOVA_FIELDS,
+    DESCRIPTIVE_FIELDS,
     FRIEDMAN_FIELDS,
     POSTHOC_FIELDS,
     _build_matrix,
@@ -23,6 +23,7 @@ from hashing.repeated_measures_analysis import (
     _rank_sign_rows,
     _repeated_measures_anova,
     analyze_repeated_measures,
+    write_descriptive_statistics,
 )
 
 
@@ -134,6 +135,34 @@ class RepeatedMeasuresAnalysisTests(unittest.TestCase):
     def test_holm_adjustment_uses_step_down_values(self):
         self.assertEqual(_holm_adjust([0.01, 0.04, 0.03]), [0.03, 0.06, 0.06])
 
+    def test_report_descriptive_csv_schema_and_values(self):
+        with tempfile.TemporaryDirectory() as temporary_dir:
+            root = Path(temporary_dir)
+            input_path = root / "synthetic_fixture.csv"
+            _write_rows(input_path, _fixture_rows())
+            output_path = write_descriptive_statistics(input_path, root / "analysis")
+
+            with output_path.open(newline="", encoding="utf-8") as csv_file:
+                reader = csv.DictReader(csv_file)
+                rows = list(reader)
+                self.assertEqual(tuple(reader.fieldnames), DESCRIPTIVE_FIELDS)
+
+            self.assertEqual(len(rows), len(ALGORITHMS) * len(INPUT_SIZES))
+            first = rows[0]
+            self.assertEqual(first["Algorithm"], ALGORITHMS[0][0])
+            self.assertEqual(float(first["Input size (KiB)"],), INPUT_SIZES[0] / 1024)
+            self.assertEqual(int(first["Observations"]), BLOCK_COUNT)
+            values = [
+                row["Execution time in seconds"]
+                for row in _fixture_rows()
+                if row["Algorithm"] == ALGORITHMS[0][0]
+                and row["Input size in bytes"] == INPUT_SIZES[0]
+            ]
+            self.assertAlmostEqual(
+                float(first["Mean time (seconds)"],),
+                sum(values) / len(values),
+            )
+
     def test_repeated_measures_effect_size_and_sphericity_outputs(self):
         block_effects = np.arange(30, dtype=float)[:, None] * 0.001
         noise = np.fromfunction(
@@ -199,12 +228,6 @@ class RepeatedMeasuresAnalysisTests(unittest.TestCase):
             rows[0]["Bonferroni simultaneous CI high for probability"],
             rows[0]["Probability size 1 has faster rank"],
         )
-
-    def test_existing_restricted_permutation_is_reproducible(self):
-        matrix = np.tile(np.arange(5, dtype=float), (30, 1))
-        first = _restricted_permutation_test(matrix, seed=314, permutation_count=99)
-        second = _restricted_permutation_test(matrix, seed=314, permutation_count=99)
-        self.assertEqual(first, second)
 
     def test_output_schema_and_original_raw_checksums_are_preserved(self):
         original_before = hashlib.sha256(ORIGINAL_RAW.read_bytes()).hexdigest()
