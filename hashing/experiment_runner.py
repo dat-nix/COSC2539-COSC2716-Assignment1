@@ -171,8 +171,8 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/runs/new_run"),
-        help="directory for CSV results and metadata (default: results/hashing/runs/new_run)",
+        default=Path("results/hashing/rq1/runs/new_run"),
+        help="directory for CSV results and metadata (default: results/hashing/rq1/runs/new_run)",
     )
     args = parser.parse_args()
 

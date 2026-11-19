@@ -1,0 +1,52 @@
+{
+  "algorithms": [
+    "AES-256-GCM",
+    "ChaCha20-Poly1305",
+    "AES-256-CBC+HMAC-SHA256"
+  ],
+  "analysis_caution": "Conditional within-block label swaps are exploratory: they require the randomized assignment approximation and no consequential carry-over/interference. Timing measures complete decryption attempts, not isolated authentication overhead.",
+  "block_count": 30,
+  "conditions_per_block": 90,
+  "created_utc": "2026-11-18T21:30:44.967929+00:00",
+  "environment": {
+    "logical_cpu_count": 12,
+    "machine_architecture": "x86_64",
+    "openssl": "OpenSSL 3.6.5 29 Sep 2026",
+    "packages": {
+      "cryptography": "50.0.2",
+      "matplotlib": "3.11.2",
+      "numpy": "2.5.5",
+      "scipy": "1.18.1"
+    },
+    "platform": "Linux-6.18.60-gentoo-dist-bin-x86_64-13th_Gen_Intel-R-_Core-TM-_i5-13420H-with-glibc2.43",
+    "processor": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "python": "3.14.10 (main, Nov  5 2026, 23:57:40) [GCC 16.2.1 20260926]"
+  },
+  "expected_measured_observations": 2700,
+  "experiment": "symmetric RQ3 randomized-block decryption verification performance",
+  "input_generation": "Deterministic pseudo-random bytes generated per block and size outside timers and shared across algorithms.",
+  "input_sizes_bytes": [
+    1024,
+    10240,
+    102400,
+    1048576,
+    10485760
+  ],
+  "key_material_written": false,
+  "measured_observations": 2700,
+  "random_seed": 26076154252915394743462338375726191705551346458478453394824873894593343728557,
+  "random_seed_source": "os_entropy",
+  "randomization": "All algorithm-size-scenario labels are uniformly intended to be permuted within each complete block using separately derived pseudo-random seeds; warm-ups are separately shuffled.",
+  "scenarios": [
+    "valid",
+    "ciphertext_tampered",
+    "authentication_data_tampered",
+    "nonce_or_iv_tampered",
+    "wrong_key",
+    "malformed_envelope"
+  ],
+  "status": "complete",
+  "timing": "time.perf_counter surrounds the complete public decrypt call, including envelope validation, authentication, decryption, and CBC unpadding. Mutations, wrong-key creation, input generation, and envelope encryption are outside timers.",
+  "warmup_iterations_per_condition": 5,
+  "warmups_in_raw_csv": false
+}

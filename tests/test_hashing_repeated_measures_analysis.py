@@ -27,10 +27,14 @@ from hashing.repeated_measures_analysis import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-ORIGINAL_RAW = PROJECT_ROOT / "results" / "hashing_benchmarks.csv"
+ORIGINAL_RAW = (
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "baseline" / "hashing_benchmarks.csv"
+)
 RANDOMIZED_RAW = (
     PROJECT_ROOT
     / "results"
+    / "hashing"
+    / "rq1"
     / "randomized_block"
     / "hashing_randomized_block_benchmarks.csv"
 )

@@ -324,8 +324,8 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/tampering_performance/runs/new_run"),
-        help="separate output directory (default: results/hashing/tampering_performance/runs/new_run)",
+        default=Path("results/hashing/rq3/tampering_performance/runs/new_run"),
+        help="separate output directory (default: results/hashing/rq3/tampering_performance/runs/new_run)",
     )
     parser.add_argument(
         "--seed", type=int, default=DEFAULT_RANDOM_SEED, help="reproducible input/order seed"

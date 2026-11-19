@@ -15,7 +15,9 @@ from hashing.statistical_analysis import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-BENCHMARK_CSV = PROJECT_ROOT / "results" / "hashing_benchmarks.csv"
+BENCHMARK_CSV = (
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "baseline" / "hashing_benchmarks.csv"
+)
 
 
 class HashingStatisticalAnalysisTests(unittest.TestCase):

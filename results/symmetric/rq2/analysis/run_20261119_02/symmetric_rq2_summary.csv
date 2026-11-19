@@ -1,0 +1,19 @@
+Algorithm,Scenario,Cases,Expected accepted,Observed accepted,Observed rejected,Plaintext released,Cases matching expectation
+AES-256-GCM,valid,5,5,5,0,5,5
+AES-256-GCM,ciphertext_tampered,5,0,0,5,0,5
+AES-256-GCM,authentication_data_tampered,5,0,0,5,0,5
+AES-256-GCM,nonce_or_iv_tampered,5,0,0,5,0,5
+AES-256-GCM,wrong_key,5,0,0,5,0,5
+AES-256-GCM,malformed_envelope,5,0,0,5,0,5
+ChaCha20-Poly1305,valid,5,5,5,0,5,5
+ChaCha20-Poly1305,ciphertext_tampered,5,0,0,5,0,5
+ChaCha20-Poly1305,authentication_data_tampered,5,0,0,5,0,5
+ChaCha20-Poly1305,nonce_or_iv_tampered,5,0,0,5,0,5
+ChaCha20-Poly1305,wrong_key,5,0,0,5,0,5
+ChaCha20-Poly1305,malformed_envelope,5,0,0,5,0,5
+AES-256-CBC+HMAC-SHA256,valid,5,5,5,0,5,5
+AES-256-CBC+HMAC-SHA256,ciphertext_tampered,5,0,0,5,0,5
+AES-256-CBC+HMAC-SHA256,authentication_data_tampered,5,0,0,5,0,5
+AES-256-CBC+HMAC-SHA256,nonce_or_iv_tampered,5,0,0,5,0,5
+AES-256-CBC+HMAC-SHA256,wrong_key,5,0,0,5,0,5
+AES-256-CBC+HMAC-SHA256,malformed_envelope,5,0,0,5,0,5

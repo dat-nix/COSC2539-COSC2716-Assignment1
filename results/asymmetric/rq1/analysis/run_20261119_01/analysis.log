@@ -1,0 +1,6 @@
+descriptive: results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_descriptive.csv
+repeated_measures_anova: results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_repeated_measures_anova.csv
+model: results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_model.csv
+pairwise: results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_pairwise.csv
+summary: results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_summary.json
+plot: results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_execution_time.png

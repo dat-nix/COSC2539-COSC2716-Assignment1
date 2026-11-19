@@ -21,7 +21,9 @@ from hashing.experiment_runner import ALGORITHMS, INPUT_SIZES
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-ORIGINAL_BENCHMARK = PROJECT_ROOT / "results" / "hashing_benchmarks.csv"
+ORIGINAL_BENCHMARK = (
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "baseline" / "hashing_benchmarks.csv"
+)
 
 
 def _write_synthetic_fixture(path: Path) -> None:

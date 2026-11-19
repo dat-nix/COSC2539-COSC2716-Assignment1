@@ -96,8 +96,12 @@ PAIRED_FIELDS = (
 )
 
 
-def _finite_or_none(value: float) -> float | None:
-    return float(value) if math.isfinite(float(value)) else None
+def _finite_or_none(value: float | None) -> float | None:
+    """Return a finite numeric diagnostic, or ``None`` when it is undefined."""
+    if value is None:
+        return None
+    numeric_value = float(value)
+    return numeric_value if math.isfinite(numeric_value) else None
 
 
 def _holm_adjust(p_values: list[float]) -> list[float]:
@@ -594,12 +598,12 @@ def main() -> None:
     parser.add_argument(
         "--input-csv",
         type=Path,
-        default=Path("results/hashing/tampering_performance") / RAW_CSV_NAME,
+        default=Path("results/hashing/rq3/tampering_performance") / RAW_CSV_NAME,
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/tampering_performance/analysis/new_run"),
+        default=Path("results/hashing/rq3/tampering_performance/analysis/new_run"),
     )
     parser.add_argument("--seed", type=int, default=55)
     parser.add_argument("--permutations", type=int, default=PERMUTATIONS)

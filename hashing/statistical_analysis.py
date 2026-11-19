@@ -436,14 +436,14 @@ def main() -> None:
     parser.add_argument(
         "--input-csv",
         type=Path,
-        default=Path("results/hashing/baseline/hashing_benchmarks.csv"),
-        help="raw benchmark CSV (default: results/hashing/baseline/hashing_benchmarks.csv)",
+        default=Path("results/hashing/rq1/baseline/hashing_benchmarks.csv"),
+        help="raw benchmark CSV (default: results/hashing/rq1/baseline/hashing_benchmarks.csv)",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/analysis/new_run"),
-        help="directory for analysis outputs (default: results/hashing/analysis/new_run)",
+        default=Path("results/hashing/rq1/analysis/new_run"),
+        help="directory for analysis outputs (default: results/hashing/rq1/analysis/new_run)",
     )
     args = parser.parse_args()
 

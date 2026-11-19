@@ -12,7 +12,9 @@ from hashing.experiment_runner import ALGORITHMS
 from hashing.tampering_performance_analysis import (
     DESCRIPTIVE_FIELDS,
     PAIRED_FIELDS,
+    _finite_or_none,
     _load_observations,
+    _paired_difference_row,
     analyze_tampering_performance,
 )
 from hashing.tampering_performance_runner import (
@@ -33,19 +35,21 @@ from hashing.tampering_performance_runner import (
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PRESERVED_FILES = (
-    PROJECT_ROOT / "results" / "hashing" / "baseline" / "hashing_benchmarks.csv",
-    PROJECT_ROOT / "results" / "hashing" / "baseline" / "hashing_tampering.csv",
-    PROJECT_ROOT / "results" / "hashing" / "randomized_block" / "hashing_randomized_block_benchmarks.csv",
-    PROJECT_ROOT / "results" / "hashing" / "randomized_block" / "hashing_randomized_block_summary.json",
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "baseline" / "hashing_benchmarks.csv",
+    PROJECT_ROOT / "results" / "hashing" / "rq2" / "baseline" / "hashing_tampering.csv",
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "randomized_block" / "hashing_randomized_block_benchmarks.csv",
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "randomized_block" / "hashing_randomized_block_summary.json",
     PROJECT_ROOT
     / "results"
     / "hashing"
+    / "rq1"
     / "randomized_block"
     / "repeated_measures"
     / "hashing_repeated_measures_summary.json",
     PROJECT_ROOT
     / "results"
     / "hashing"
+    / "rq3"
     / "tampering_performance"
     / "hashing_tampering_performance.csv",
 )
@@ -56,6 +60,37 @@ def _checksums(paths):
 
 
 class TamperingPerformanceTests(unittest.TestCase):
+    def test_undefined_numeric_diagnostics_are_reported_as_none(self):
+        self.assertIsNone(_finite_or_none(None))
+        self.assertIsNone(_finite_or_none(float("nan")))
+        self.assertEqual(_finite_or_none(0.25), 0.25)
+
+    def test_undefined_lag_correlation_does_not_fail_paired_analysis(self):
+        records = {}
+        valid_times = (10.0, 10.0, 10.0)
+        modified_times = (11.0, 11.0, 12.0)
+        for block_id, (valid_time, modified_time) in enumerate(
+            zip(valid_times, modified_times), start=1
+        ):
+            records[("SHA-256", 64, VALID_SCENARIO, block_id)] = {
+                "Execution time in seconds": valid_time
+            }
+            records[("SHA-256", 64, TAMPERED_TRUSTED_SCENARIO, block_id)] = {
+                "Execution time in seconds": modified_time
+            }
+
+        result = _paired_difference_row(
+            "SHA-256",
+            64,
+            "tampered_vs_valid",
+            TAMPERED_TRUSTED_SCENARIO,
+            VALID_SCENARIO,
+            records,
+            analysis_seed=7,
+            permutation_count=99,
+        )
+        self.assertIsNone(result["Paired difference lag-1 correlation by block"])
+
     def test_hash_and_compare_correctness_for_all_algorithms(self):
         original = b"trusted sample data"
         modified = bytearray(original)

@@ -781,12 +781,12 @@ def main() -> None:
     parser.add_argument(
         "--input-csv",
         type=Path,
-        default=Path("results/hashing/randomized_block") / "hashing_randomized_block_benchmarks.csv",
+        default=Path("results/hashing/rq1/randomized_block") / "hashing_randomized_block_benchmarks.csv",
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/randomized_block/repeated_measures/analysis/new_run"),
+        default=Path("results/hashing/rq1/randomized_block/repeated_measures/analysis/new_run"),
     )
     parser.add_argument("--alpha", type=float, default=DEFAULT_ALPHA)
     args = parser.parse_args()

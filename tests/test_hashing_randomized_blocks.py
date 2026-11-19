@@ -18,7 +18,9 @@ from hashing.randomized_block_runner import (
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-ORIGINAL_BENCHMARK = PROJECT_ROOT / "results" / "hashing_benchmarks.csv"
+ORIGINAL_BENCHMARK = (
+    PROJECT_ROOT / "results" / "hashing" / "rq1" / "baseline" / "hashing_benchmarks.csv"
+)
 
 
 class RandomizedBlockRunnerTests(unittest.TestCase):
@@ -47,7 +49,9 @@ class RandomizedBlockRunnerTests(unittest.TestCase):
 
     def test_outputs_are_separate_from_original_and_existing_outputs_are_protected(self):
         original_before = hashlib.sha256(ORIGINAL_BENCHMARK.read_bytes()).hexdigest()
-        raw_path, metadata_path = output_paths(PROJECT_ROOT / "results" / "randomized_block")
+        raw_path, metadata_path = output_paths(
+            PROJECT_ROOT / "results" / "hashing" / "rq1" / "randomized_block"
+        )
         self.assertEqual(raw_path.name, RAW_CSV_NAME)
         self.assertEqual(metadata_path.name, METADATA_NAME)
         self.assertNotEqual(raw_path.resolve(), ORIGINAL_BENCHMARK.resolve())

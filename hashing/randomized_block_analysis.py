@@ -676,12 +676,12 @@ def main() -> None:
     parser.add_argument(
         "--input-csv",
         type=Path,
-        default=Path("results/hashing/randomized_block") / RAW_CSV_NAME,
+        default=Path("results/hashing/rq1/randomized_block") / RAW_CSV_NAME,
     )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/randomized_block/analysis/new_run"),
+        default=Path("results/hashing/rq1/randomized_block/analysis/new_run"),
     )
     parser.add_argument("--seed", type=int, default=0, help="seed for reproducible restricted permutations")
     parser.add_argument("--permutations", type=int, default=PERMUTATIONS)

@@ -189,8 +189,8 @@ def main() -> None:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path("results/hashing/randomized_block/runs/new_run"),
-        help="new output directory (default: results/hashing/randomized_block/runs/new_run)",
+        default=Path("results/hashing/rq1/randomized_block/runs/new_run"),
+        help="new output directory (default: results/hashing/rq1/randomized_block/runs/new_run)",
     )
     parser.add_argument(
         "--seed",
