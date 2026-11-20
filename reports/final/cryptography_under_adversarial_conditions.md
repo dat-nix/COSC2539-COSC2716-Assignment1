@@ -1,179 +1,240 @@
-# Cryptography Under Adversarial Conditions
+Evaluating Cryptographic Mechanisms for Secure IoT Communications Under Adversarial Conditions
 
 **RMIT COSC2539 - Assignment 1: Analytical Security Report**
 
-**Student:** [Name and student ID]
+**Name:** Pham Minh Dat s4139434
 
-**AI-assisted sections:** identified with [AI-1]; complete the citation fields in Acknowledgements.
+**AI-assisted prose:** marked [AI-1]. See “Acknowledgements and AI disclosure” for the required prompt citation and student verification.
+# Abstract
+Motivated by a hypothetical Cybersecurity Research Engineer role-play inspired by Nozomi Networks Labs' public OT/IoT research domain, this study presents an implementation-level evaluation of nine cryptographic constructions across five payload sizes. It measures SHA-256, SHA3-256, and BLAKE2b-256; AES-256-GCM, ChaCha20-Poly1305, and AES-256-CBC with HMAC-SHA256; and three asymmetric-based hybrid schemes using RSA-OAEP, ECDH P-256, or X25519 with AES-GCM. The 2,250 RQ1 timing observations showed input-size effects within each category, but all repeated-measures ANOVAs rejected sphericity. Normality diagnostics indicated departures in assessed series; Hashing difference-score diagnostics were unavailable. Observed temporal dependence further limits inferential strength. For RQ3, Holm-adjusted comparisons were significant in 0/45 Hashing, 36/75 Symmetric, and 17/60 Hybrid contrasts; dependence and assignment limitations make these findings exploratory or conditional. RQ2 tests found that Symmetric and Hybrid invalid inputs were rejected without plaintext release. Hashing detected modified data against a trusted digest, while an attacker-recomputed unkeyed digest matched the modified data. The results complement device-specific IoT benchmarking with measurements of these implementations and complete valid/invalid processing paths on one host; they are not universal performance rankings or security guarantees. [AI-1]
 
-## Abstract
+# 1. Introduction
+Connected operational-technology (OT), industrial Internet-of-Things (IIoT), and broader IoT environments exchange data among sensors, controllers, gateways, and supervisory systems. Cryptographic mechanisms can protect confidentiality and integrity, but the relevant construction also affects processing cost, key handling, and failure behaviour. Prior empirical work demonstrates that observed cost depends on the device, implementation, protocol, and metric: studies have measured cryptographic delay and message expansion across embedded IoT platforms and protocols, or analyzed the resource impact of software and hardware crypto support on low-end devices [1], [2]. Thus, measurements on a general-purpose host cannot establish the performance of a field device.
 
-This report compares three cryptographic categories under controlled payload-size and tampering experiments: SHA-256, SHA3-256, and BLAKE2b-256; AES-256-GCM, ChaCha20-Poly1305, and AES-256-CBC + HMAC-SHA256; and RSA-OAEP, ECDH P-256, or X25519 combined with AES-256-GCM. Across the authoritative runs, 450, 900, and 900 RQ1 timings were collected for Hashing, Symmetric, and Asymmetric-based hybrid encryption. Their repeated-measures ANOVA tests were significant after within-category Holm correction, but residual normality was rejected and all analyses require caution. Tested symmetric and hybrid invalid envelopes were rejected without plaintext release. Hashing detected modified data against a trusted digest, but an attacker-recomputed unkeyed digest matched modified data. RQ3 yielded 0/45, 36/75, and 17/60 Holm-significant comparisons, respectively; timing inference remains exploratory or conditional. These results describe the implementations and one machine, not a universal speed ranking or a security proof. [AI-1]
+The October 11–12, 2026 attack on commercial refrigeration systems at French supermarkets illustrates the operational consequences that connected control-system compromise can have. Le Monde and the Associated Press reported refrigeration disruption across hundreds of stores, food loss, and forced defrost behaviour; AP reported an official estimate of approximately 700 affected stores [3], [4]. Le Monde reported that many affected units were obsolete, while AP discussed older equipment and publicly accessible control systems as security concerns [3], [4]. Unit 42 stated that the initial access vector remained unconfirmed [5]. This incident motivates attention to secure industrial communications, but it is not evidence that cryptographic weakness caused the event. This study neither investigates the incident's root cause nor evaluates whether its tested schemes would have prevented it.
 
-## 1. Background and research questions
+The professional setting is a hypothetical Cybersecurity Research Engineer role at Nozomi Networks Labs. The scenario is inspired by Nozomi Networks' publicly described OT/IoT focus and Labs work on vulnerability disclosure, threat research, and threat intelligence for industrial and critical-infrastructure environments [6], [7]. It is an academic role-play only: the author does not claim employment, company sponsorship, or endorsement.
 
-Cryptography provides different services through different operations. A hash maps data to a fixed-size digest; symmetric authenticated encryption protects messages with a shared key; asymmetric-based hybrid encryption uses public-key mechanisms to establish or protect a symmetric key, then uses symmetric encryption for the payload. Timing those operations as though they were the same task would create a misleading ranking. This report therefore compares each category within its own measured scope, using controlled inputs and randomized blocks. Randomized benchmarking can reduce order-related bias, but cannot remove operating-system effects or guarantee independent observations [1].
+Prior performance studies provide useful but differently scoped evidence. Silva et al. evaluated cryptographic configurations over HTTP and MQTT on six embedded platforms, measuring power use, message delay, and additional message length during long-running tests [1]. Kietzmann et al. examined cryptographic primitives and hardware support across off-the-shelf low-end IoT platforms, emphasizing how hardware, drivers, and software affect resource use [2]. On a deeply embedded ARM Cortex-M4, Bühler et al. measured AES-GCM, ChaCha20-Poly1305, HMAC-SHA256, and other primitives as input length changed [8]. Blanc et al. benchmarked 12 lightweight authenticated-encryption candidates on several hardware platforms and combined IoT-LAB latency with local runtime, RAM, and code-size measures [9]. These studies show why cryptographic performance must be interpreted in its platform and workload context; they do not provide a direct result for the exact nine implementations and full processing paths evaluated here.
 
-The nine selected constructions represent three hash families, two common authenticated-encryption designs, an Encrypt-then-MAC design, and three public-key key establishment/key-protection approaches using the same payload cipher. The choices permit comparisons of distinct mechanisms while keeping payload sizes and, within each category, input bytes matched. They do not represent every implementation or configuration.
+Research on invalid-input timing further shows why failure behaviour can matter in deployed protocols. Vaudenay demonstrated padding-validity side channels in protocol settings that reveal information about CBC decryption [10]. AlFardan and Paterson demonstrated timing-based plaintext-recovery attacks against particular TLS/DTLS CBC record implementations in realistic network settings [11]. Those results concern protocol-specific constructions and observable network behaviour, not the present local benchmark or its Encrypt-then-MAC implementation. The reviewed benchmark and protocol studies therefore motivate, but do not themselves answer, this report's narrower question: how do these selected implementations behave across payload sizes and tested valid/invalid processing paths when their complete measured operations are included?
+
+This study contributes a bounded implementation-level comparison of nine constructions across five payload sizes, with functional tampering tests and controlled measurements of complete valid and invalid processing paths. It complements platform-specific IoT benchmarks; it does not claim that prior work has neglected cryptographic benchmarking, nor does it claim novelty as the first such study. Randomized blocks and explicit timing boundaries provide a defined basis for reproducing the local comparisons, while benchmark methodology literature cautions that careful design cannot remove machine effects or guarantee independent observations [12]. The results may inform questions for later device- and protocol-specific evaluation, but do not constitute a complete IoT security assessment.
+
+For this assignment, the objective is to examine implementation-level performance across payload sizes, responses to data tampering and invalid inputs, and processing costs along valid and invalid integrity-verification paths. Hashing, symmetric authenticated encryption, and asymmetric-based hybrid encryption perform distinct operations; the study therefore reports within-category findings and avoids ranking them as interchangeable solutions.
 
 The report addresses these approved questions:
 
-- **RQ1:** How does input data size affect the execution time of selected cryptographic algorithms?
-- **RQ2:** How do selected cryptographic schemes respond to tampered data and invalid ciphertext?
-- **RQ3:** How do integrity verification and rejection of invalid inputs affect the processing time of selected cryptographic schemes under adversarial conditions?
+**RQ1:** How does input data size affect the execution time of selected cryptographic algorithms?
+
+**RQ2:** How do selected cryptographic schemes respond to tampered data and invalid ciphertext?
+
+**RQ3:** How do integrity verification and rejection of invalid inputs affect the processing time of selected cryptographic schemes under adversarial conditions?
 
 This is an empirical implementation study. Passing a finite set of tests does not prove security, and local timing differences alone do not demonstrate a remotely exploitable side channel. [AI-1]
+# 2. Experimental Methodology
+## 2.1 Schemes and security roles
+**Hashing.** SHA-256 and SHA3-256 follow NIST standards; BLAKE2b is configured for a 32-byte result [13]–[16]. All produce 256-bit digests. Hashing provides neither confidentiality nor sender authentication. A digest detects a change only when the reference digest is trusted. If an attacker can replace both the message and an unkeyed digest, the attacker can compute a matching pair. HMAC is a keyed integrity/authentication mechanism, but does not identify one particular sender among parties sharing its key [17]. [AI-1]
 
-## 2. Data collection and experimental methodology
+**Symmetric encryption.** AES-256-GCM (AES-GCM) and ChaCha20-Poly1305 (ChaCha) are authenticated-encryption constructions, selected to compare two AEAD mechanisms [18]–[21]. They encrypt payloads and authenticate ciphertext and associated data; a valid tag does not establish a human sender identity. RFC 5116 models authenticated decryption as returning either plaintext or failure and prohibits returning partially decrypted data on error [22]. AES-256-CBC with HMAC-SHA256 (CBC-HMAC) represents a separate Encrypt-then-MAC construction. It uses independent encryption and MAC keys, PKCS#7 padding, and authenticates the IV and ciphertext. The implementation verifies the MAC in constant time before CBC decryption or unpadding [17], [23]. This ordering prevents unauthenticated ciphertext from reaching padding validation. [AI-1]
 
-### 2.1 Schemes and security roles
-
-**Hashing.** SHA-256 and SHA3-256 follow NIST standards; BLAKE2b is configured for a 32-byte result [2]-[5]. All produce 256-bit digests. Hashing provides neither confidentiality nor sender authentication. A digest detects a change only when the reference digest is trusted. If an attacker can replace both the message and an unkeyed digest, the attacker can compute a matching pair. HMAC is a keyed integrity/authentication mechanism, but does not identify one particular sender among parties sharing its key [6]. [AI-1]
-
-**Symmetric encryption.** AES-256-GCM and ChaCha20-Poly1305 are authenticated-encryption constructions, selected to represent two widely used AEAD mechanisms [7]-[10]. They encrypt payloads and authenticate ciphertext and associated data; a valid tag does not establish a human sender identity. AES-256-CBC + HMAC-SHA256 represents a separate Encrypt-then-MAC construction. It uses independent encryption and MAC keys, PKCS#7 padding, and authenticates the IV and ciphertext. The implementation verifies the MAC in constant time before CBC decryption or unpadding [6], [11]. This ordering prevents unauthenticated ciphertext from reaching padding validation. [AI-1]
-
-**Asymmetric-based hybrid encryption.** RSA-OAEP with SHA-256 wraps a fresh AES-256 session key; RSA does not encrypt the large payload. ECDH P-256 and X25519 establish a shared secret, HKDF-SHA256 derives a 256-bit key, and AES-256-GCM encrypts/authenticates the payload [12]-[15]. The evaluated ECDH/X25519 schemes use an ephemeral sender key and a static recipient key. They do not add a sender signature or replay protection, and later compromise of the recipient private key can expose recorded exchanges; this design does not provide forward secrecy against that compromise. [AI-1]
-
-### 2.2 Inputs, blocks, and environment
-
+**Asymmetric-based hybrid encryption.** RSA-OAEP with SHA-256 wraps a fresh AES-256 session key; RSA does not encrypt the large payload. ECDH P-256 and X25519 establish a shared secret, HKDF-SHA256 derives a 256-bit key, and AES-256-GCM encrypts/authenticates the payload [24]–[27]. The evaluated ECDH/X25519 schemes use an ephemeral sender key and a static recipient key. They do not add a sender signature or replay protection, and later compromise of the recipient private key can expose recorded exchanges; this design does not provide forward secrecy against that compromise. [AI-1]
+## 2.2 Inputs, blocks, and environment
 No external dataset was scraped. Hashing RQ1 and RQ3 generated seeded pseudo-random byte buffers before timing; Hashing RQ2 used a deterministic repeated 0–255 byte pattern for its functional checks. The Symmetric and Asymmetric runners generated seeded pseudo-random payload buffers. The five payload sizes were 1 KiB, 10 KiB, 100 KiB, 1 MiB, and 10 MiB (1,024 through 10,485,760 bytes). Within each block and size, schemes in a category received the same bytes. Cryptographic keys and nonce/IV values used cryptographic randomness, independent of experimental seeds.
 
 Each performance experiment used 30 complete blocks, five warm-ups excluded from measured CSVs, and randomized condition order within blocks. Raw sample counts were 450 Hashing RQ1 observations, 900 Symmetric, and 900 Asymmetric hybrid. Warm-up exposure differed: Hashing and Asymmetric warmed each condition before measured blocks; Symmetric warmed each condition within each block. This is a cross-category comparability limitation.
 
 The recorded environment was Gentoo Linux, kernel 6.18.60, Intel Core i5-13420H, and CPython 3.14.10. Symmetric/Asymmetric metadata recorded OpenSSL 3.6.5 and cryptography 50.0.2; NumPy 2.5.5 and SciPy 1.18.1 were used for analysis, with statsmodels 0.15.0 for the Asymmetric adjusted model. Hashing metadata did not record its hash-library backend version. Only one machine/software environment was evaluated. [AI-1]
+## 2.3 Timing boundaries and adversarial cases
+All measured intervals used time.perf_counter(). Input creation, long-term recipient keypair generation/provisioning, attack mutation, CSV output, and statistical analysis were excluded. For Hybrid RQ1, recipient keypairs were generated before warm-ups and measured blocks. The timed encryption call includes per-message AES session-key generation for RSA, and per-message ephemeral sender-key generation for ECDH/X25519, as well as key agreement and HKDF for ECDH/X25519, OAEP wrapping for RSA, and AES-GCM encryption. The timed decryption call includes RSA-OAEP unwrapping or ECDH/X25519 agreement and HKDF, followed by AES-GCM decryption; it does not generate a new recipient keypair.
 
-### 2.3 Timing boundaries and adversarial cases
-
-All measured intervals used `time.perf_counter()`. Input creation, long-term recipient keypair generation/provisioning, attack mutation, CSV output, and statistical analysis were excluded. For Hybrid RQ1, recipient keypairs were generated before warm-ups and measured blocks. The timed encryption call includes per-message AES session-key generation for RSA, and per-message ephemeral sender-key generation for ECDH/X25519, as well as key agreement and HKDF for ECDH/X25519, OAEP wrapping for RSA, and AES-GCM encryption. The timed decryption call includes RSA-OAEP unwrapping or ECDH/X25519 agreement and HKDF, followed by AES-GCM decryption; it does not generate a new recipient keypair.
-
-| Category | RQ1 timing | RQ3 timing |
-|---|---|---|
+| **Category** | **RQ1 timing** | **RQ3 timing** |
+| --- | --- | --- |
 | Hashing | Digest call; hex formatting excluded. | Digest calculation plus comparison with a supplied digest. Attacker-side digest recomputation excluded. |
 | Symmetric | Full per-message encrypt/decrypt call. Encryption includes nonce/IV generation, padding, encryption, and tag/MAC creation; decryption includes validation, authentication, decryption, and unpadding where reached. | Complete decrypt attempt, including early parsing/validation and the failure path. Authentication cost is not isolated. |
 | Hybrid | RSA encryption: per-message AES session-key generation, AES-GCM, and OAEP wrapping. ECDH/X25519 encryption: per-message ephemeral sender-key generation, key agreement, HKDF, and AES-GCM. Decryption: RSA-OAEP unwrap or ECDH/X25519 agreement and HKDF, then AES-GCM. Long-term recipient keypair generation/provisioning is outside the timer. | Complete decrypt attempt through parsing, key recovery/agreement, HKDF, and AES-GCM stages reached. |
-
 RQ2 used trusted-digest and attacker-recomputed-digest scenarios for hashing; valid, ciphertext/tag/IV-or-nonce, wrong-key, and malformed cases for Symmetric; and ciphertext/tag, wrapped-key or public-key changes, and malformed envelopes for the hybrid schemes. RQ3 kept invalid scenarios separate by failure path. The hashed third scenario times verification against an already recomputed digest; it excludes the attacker's digest generation. [AI-1]
+# 3. Statistical analysis
+### RQ1: repeated-measures analyses
 
-## 3. Data analysis
+Each algorithm or scheme-operation combination was tested separately using one-factor repeated-measures ANOVA. Input size was the five-level within-block factor, and block was the subject. Mauchly's test assessed sphericity; all tests rejected it, so Greenhouse-Geisser (GG) corrected degrees of freedom and p-values were used [28]. Holm correction was applied within category families of 3 Hashing, 6 Symmetric, and 6 Hybrid omnibus tests [29]. Tests used α = .05 and reported partial eta-squared. A significant omnibus result establishes only that at least one mean differs, not which pair. For concise labels below, AES-256-GCM is AES-GCM, ChaCha20-Poly1305 is ChaCha, and AES-256-CBC with HMAC-SHA256 is CBC-HMAC. The Hybrid schemes are RSA-OAEP + AES-256-GCM (RSA), ECDH P-256 + HKDF-SHA256 + AES-256-GCM (ECDH), and X25519 + HKDF-SHA256 + AES-256-GCM (X25519). [AI-1]
 
-For RQ1, each algorithm or scheme-operation combination was tested separately using one-factor repeated-measures ANOVA: input size was the five-level within-block factor and block was the subject. Mauchly's test assessed sphericity; all tests rejected it, so Greenhouse-Geisser (GG) corrected degrees of freedom and p-values were used [16]. Holm correction was applied within category families of 3 Hashing, 6 Symmetric, and 6 hybrid omnibus tests [17]. Tests used α = .05 and reported partial eta-squared. A significant omnibus result establishes only that at least one mean differs, not which pair.
+Residual normality was assessed with Shapiro-Wilk [30], with departures indicated in the assessed RQ1 series. Difference-score Shapiro-Wilk diagnostics rejected normality for Symmetric and Hybrid; the saved Hashing RM-ANOVA did not include difference-score normality diagnostics. Greenhouse-Geisser adjusts degrees of freedom and p-values for sphericity only; it does not correct non-normality or temporal dependence.
 
-Hashing and Symmetric also report Friedman repeated-block rank tests, separately from their ANOVA families [18]. Hashing's Friedman p-values were Holm-adjusted across three algorithms (a separate family from the three ANOVA tests): SHA-256 χ²(4) = 119.227, raw p = 7.81×10⁻²⁵, adjusted p = 1.60×10⁻²⁴; SHA3-256 χ²(4) = 120.000, raw p = 5.34×10⁻²⁵, adjusted p = 1.60×10⁻²⁴; BLAKE2b-256 χ²(4) = 120.000, raw p = 5.34×10⁻²⁵, adjusted p = 1.60×10⁻²⁴. Symmetric's Friedman p-values were Holm-adjusted across six scheme-operation tests (separate from the six ANOVA tests): AES-GCM encrypt χ²(4) = 112.827, raw p = 1.82×10⁻²³, adjusted p = 1.91×10⁻²³; AES-GCM decrypt 116.667, 2.75×10⁻²⁴, 1.38×10⁻²³; ChaCha encrypt 117.227, 2.09×10⁻²⁴, 1.25×10⁻²³; ChaCha decrypt 116.160, 3.53×10⁻²⁴, 1.41×10⁻²³; CBC-HMAC encrypt 114.960, 6.36×10⁻²⁴, 1.91×10⁻²³; CBC-HMAC decrypt 114.427, 8.27×10⁻²⁴, 1.91×10⁻²³ (each χ² has 4 df). These rank tests concern within-block input-size ranks, not arithmetic means; their adjusted results are supplementary and do not replace or duplicate the ANOVA inference. Hybrid has no implemented or reported Friedman test; this is a difference in implemented analyses, not an unreported result.
+For Hashing, the saved repeated-measures output reports a median-centered Levene test on model residuals grouped by input size: equal residual variances were rejected for SHA-256 (p = .00416) and SHA3-256 (p = 3.71×10⁻⁵), but were not rejected for BLAKE2b-256 (p = .403). This is a supplementary variance diagnostic, not a test of sphericity; Mauchly's test assesses sphericity. [AI-1]
 
-Hybrid's complementary sensitivity model is OLS of execution time in seconds on input-size indicators, block fixed effects, and centered randomized condition position, fitted separately for each scheme-operation. The joint Wald F test concerns the input-size coefficients, conditional on block and linear position. Block fixed effects absorb block-level mean differences; CR1 cluster-robust covariance clustered by block is intended to allow within-block error dependence and heteroskedasticity when estimating uncertainty. The analysis uses only 30 blocks (clusters), so its cluster-robust uncertainty estimates should be interpreted cautiously given the relatively limited cluster count. It is a position-adjusted sensitivity analysis, not a replacement for the primary repeated-measures ANOVA: it uses a different model and approximate cluster-based inference, and does not remove the limitations from sequential blocks or prove independence. All six OLS omnibus tests remained significant after Holm correction across six scheme-operation tests; RSA encryption/decryption Wald F values were 213.32/459.14, ECDH 113.51/185.78, and X25519 204.95/310.55. The saved model output flags RSA encryption for `block_order_trend` and RSA decryption for `serial_dependence_between_blocks`; the implementation omits pairwise OLS contrasts whenever a diagnostic flag is present. Thus RSA contrasts were omitted under that rule, and the saved evidence does not establish a broader statistical justification beyond those flagged diagnostics.
+Hashing and Symmetric also report Friedman repeated-block rank tests, separately from their ANOVA families [31]. Hashing's Friedman p-values were Holm-adjusted across three algorithms (a separate family from the three ANOVA tests):
 
-For RQ3, one paired comparison is a planned contrast for a fixed algorithm or scheme and size, matched over 30 blocks. Hashing has three contrasts per algorithm-size configuration (trusted-digest tampering versus valid, attacker-recomputed digest versus valid, and trusted-digest tampering versus attacker-recomputed digest), giving 3 algorithms × 5 sizes × 3 contrasts = 45. Symmetric has five invalid-versus-valid contrasts per algorithm-size configuration, giving 3 × 5 × 5 = 75; Hybrid has four per scheme-size configuration, giving 3 × 5 × 4 = 60. These are paired-comparison rows, not raw timing observations; the corresponding raw datasets contain 1,350 Hashing, 2,700 Symmetric, and 2,250 Hybrid timings. Holm correction covers all comparison rows in each category family at α = .05. Hashing's sign-flip test depends on sign exchangeability/symmetry and is not an exact design-based test of condition assignment. Symmetric and hybrid label-swap tests are conditional on their generated schedules and a sharp no-effect null. All require caution about finite-state PRNG assignment and no consequential carry-over. Diagnostics showed temporal structure: a Hashing block trend, maximum within-size lag-1 correlation 0.422 for Symmetric RQ3, and hybrid block lag-1 correlation 0.426 (p = .0213). These limitations downgrade RQ3 inference to exploratory/conditional. A non-significant test does not establish equivalence. Residual normality diagnostics used Shapiro-Wilk [19]; they rejected normality. GG correction addresses sphericity only, not normality or temporal dependence. [AI-1]
+| Algorithm | χ²(4) | Raw p | Holm-adjusted p |
+| --- | ---: | ---: | ---: |
+| SHA-256 | 119.227 | 7.81×10⁻²⁵ | 1.60×10⁻²⁴ |
+| SHA3-256 | 120.000 | 5.34×10⁻²⁵ | 1.60×10⁻²⁴ |
+| BLAKE2b-256 | 120.000 | 5.34×10⁻²⁵ | 1.60×10⁻²⁴ |
 
-## 4. Results and discussion
+Symmetric Friedman p-values were Holm-adjusted across six scheme-operation tests (separate from the six ANOVA tests):
 
-### 4.1 RQ1: Input size and execution time
+| Scheme-operation | χ²(4) | Raw p | Holm-adjusted p |
+| --- | ---: | ---: | ---: |
+| AES-GCM encrypt | 112.827 | 1.82×10⁻²³ | 1.91×10⁻²³ |
+| AES-GCM decrypt | 116.667 | 2.75×10⁻²⁴ | 1.38×10⁻²³ |
+| ChaCha encrypt | 117.227 | 2.09×10⁻²⁴ | 1.25×10⁻²³ |
+| ChaCha decrypt | 116.160 | 3.53×10⁻²⁴ | 1.41×10⁻²³ |
+| CBC-HMAC encrypt | 114.960 | 6.36×10⁻²⁴ | 1.91×10⁻²³ |
+| CBC-HMAC decrypt | 114.427 | 8.27×10⁻²⁴ | 1.91×10⁻²³ |
 
-Every 10 MiB mean exceeded its corresponding 1 KiB mean. Hashing and Symmetric means rose at each tested size. Hybrid decryption was not strictly monotonic at the smallest sizes: RSA-OAEP decreased slightly from 1.580 ms at 1 KiB to 1.574 ms at 10 KiB; X25519 decreased from 0.06793 ms to 0.06515 ms before both rose at larger sizes.
+These rank tests concern within-block input-size ranks, not arithmetic means; their adjusted results are supplementary and do not replace or duplicate the ANOVA inference. Hybrid has no implemented or reported Friedman test; this is a difference in implemented analyses, not an unreported result.
 
-| Category | 1 KiB mean → 10 MiB mean (ms) | Repeated-measures result |
-|---|---|---|
-| Hashing | SHA-256 0.00266 → 4.83394; SHA3-256 0.00363 → 16.37492; BLAKE2b-256 0.00370 → 9.53853 | All 3 significant; Holm p = 1.82×10⁻⁵² to 2.17×10⁻³⁶; partial η² = .996–.9996 |
-| Symmetric, encrypt/decrypt | AES-GCM .01146/.00726 → 2.764/2.816; ChaCha20-Poly1305 .01049/.00781 → 5.396/5.369; CBC-HMAC .03321/.02830 → 14.012/9.592 | All 6 significant; Holm p = 3.70×10⁻⁴⁹ to 1.93×10⁻²⁷; partial η² = .980–.999 |
-| Hybrid, encrypt/decrypt | RSA .07737/1.57991 → 3.453/4.869; ECDH .14058/.11024 → 3.483/3.506; X25519 .11464/.06793 → 3.403/3.457 | All 6 significant; Holm p = 5.33×10⁻⁴⁰ to 8.33×10⁻²¹; partial η² = .949–.976 |
+### Hybrid OLS sensitivity analysis
 
-Times in this table are means; full medians and descriptive statistics are in the category analysis CSVs, and Appendix A gives the full RM-ANOVA table. The primary omnibus tests support an input-size effect within each measured series, subject to assumption failures. Separately Holm-adjusted Friedman tests were significant for all three Hashing algorithms and all six Symmetric series (statistics and raw/adjusted p-values are reported in Section 3); these test rank distributions, not arithmetic means, and are supplementary rather than same-family corroboration of the ANOVA. The hybrid OLS sensitivity tests also found size effects, but are a separate model and analysis family. Sphericity and residual normality were rejected in all models; Hashing's saved RM-ANOVA did not include difference-score normality diagnostics. Symmetric and hybrid difference-score diagnostics also rejected normality. Symmetric RQ1 also had a maximum within-size lag-1 correlation of .517, indicating possible temporal dependence. Hashing Levene tests rejected equal residual variances for SHA-256 and SHA3-256 but not BLAKE2b-256; Levene is not a sphericity test. No cross-category or between-scheme significance tests were run.
+Hybrid's complementary sensitivity model is OLS of execution time in seconds on input-size indicators, block fixed effects, and centered randomized condition position, fitted separately for each scheme-operation. The joint Wald F test concerns the input-size coefficients, conditional on block and linear position. Block fixed effects absorb block-level mean differences; CR1 cluster-robust covariance clustered by block is intended to allow within-block error dependence and heteroskedasticity when estimating uncertainty. The analysis uses only 30 blocks (clusters), so its cluster-robust uncertainty estimates should be interpreted cautiously given the relatively limited cluster count. It is a position-adjusted sensitivity analysis, not a replacement for the primary repeated-measures ANOVA: it uses a different model and approximate cluster-based inference, and does not remove the limitations from sequential blocks or prove independence.
 
-The mechanism explains the broad pattern but was not timed separately. Hashing processes the payload to compute a digest. AEAD encryption/decryption processes the payload once for authenticated protection. CBC-HMAC performs a MAC pass as well as CBC/padding work; its larger observed times are consistent with this extra pass, but the experiment did not isolate component costs. Hybrid operations include key wrapping or key agreement and HKDF in addition to AES-GCM. RSA's measured public-key operation is key wrapping, not encryption of the 10 MiB payload. Therefore, the endpoint times are not a universal speed ranking: the measured operations differ. [AI-1]
+All six OLS omnibus tests remained significant after Holm correction across six scheme-operation tests; RSA encryption/decryption Wald F values were 213.32/459.14, ECDH 113.51/185.78, and X25519 204.95/310.55. The saved model output flags RSA encryption for block_order_trend and RSA decryption for serial_dependence_between_blocks; the implementation omits pairwise OLS contrasts whenever a diagnostic flag is present. Thus RSA contrasts were omitted under that rule, and the saved evidence does not establish a broader statistical justification beyond those flagged diagnostics.
 
-![Symmetric RQ1 encryption and decryption times](../../results/symmetric/rq1/analysis/run_20261119_02/symmetric_rq1_execution_time.png)
+### RQ3: paired timing comparisons
 
-*Figure 1. Symmetric mean execution time by size and operation. Within-category series only; no between-scheme test was conducted.*
+One paired comparison is a planned contrast for a fixed algorithm or scheme and size, matched over 30 blocks. Hashing has three contrasts per algorithm-size configuration (trusted-digest tampering versus valid, attacker-recomputed digest versus valid, and trusted-digest tampering versus attacker-recomputed digest), giving 3 algorithms × 5 sizes × 3 contrasts = 45. Symmetric has five invalid-versus-valid contrasts per algorithm-size configuration, giving 3 × 5 × 5 = 75; Hybrid has four per scheme-size configuration, giving 3 × 5 × 4 = 60. These are paired-comparison rows, not raw timing observations; the corresponding raw datasets contain 1,350 Hashing, 2,700 Symmetric, and 2,250 Hybrid timings. Holm correction covers all comparison rows in each category family at α = .05.
 
-### 4.2 RQ2: Tampering and invalid-input responses
+Hashing's sign-flip test depends on sign exchangeability/symmetry and is not an exact design-based test of condition assignment. Symmetric and Hybrid label-swap tests are conditional on their generated schedules and a sharp no-effect null. All require caution about finite-state PRNG assignment and no consequential carry-over. Diagnostics showed temporal structure: a Hashing block trend, maximum within-size lag-1 correlation 0.422 for Symmetric RQ3, and Hybrid block lag-1 correlation 0.426 (p = .0213). These diagnostics warrant treating RQ3 inference as exploratory or conditional. A non-significant test does not establish equivalence. [AI-1]
+# 4. Results and discussion
+## 4.1 RQ1: Input size and execution time
+Every 10 MiB mean and median exceeded its corresponding 1 KiB value. Hashing means and medians rose at each tested size. For the Symmetric schemes—AES-256-GCM (AES-GCM), ChaCha20-Poly1305 (ChaCha), and AES-256-CBC with HMAC-SHA256 (CBC-HMAC)—means and medians rose at each tested size. In the asymmetric-based Hybrid group, comprising RSA-OAEP + AES-256-GCM (RSA), ECDH P-256 + HKDF-SHA256 + AES-256-GCM (ECDH), and X25519 + HKDF-SHA256 + AES-256-GCM (X25519), mean decryption time dipped slightly from 1 KiB to 10 KiB for RSA (1.580 to 1.574 ms) and X25519 (0.06793 to 0.06515 ms); the X25519 decryption median also dipped (0.06474 to 0.06060 ms). The Hybrid series then increased at larger sizes. [AI-1]
 
-| Category | Observed functional outcomes | Mechanism and interpretation |
-|---|---|---|
+| **Category** | **1 KiB mean (median) → 10 MiB mean (median), ms** | **Repeated-measures result** |
+| --- | --- | --- |
+| Hashing | SHA-256 0.00266 (0.00217) → 4.83394 (4.78296); SHA3-256 0.00363 (0.00350) → 16.37492 (16.30209); BLAKE2b-256 0.00370 (0.00281) → 9.53853 (9.41434) | All 3 significant; Holm p = 1.82×10⁻⁵² to 2.17×10⁻³⁶; partial η² = .996–.9996 |
+| Symmetric (encrypt/decrypt pairs) | AES-GCM .01146/.00726 (.00910/.00616) → 2.764/2.816 (2.638/2.641); ChaCha20-Poly1305 .01049/.00781 (.00832/.00619) → 5.396/5.369 (5.164/5.228); CBC-HMAC .03321/.02830 (.03701/.02839) → 14.012/9.592 (13.943/9.217) | All 6 significant; Holm p = 3.70×10⁻⁴⁹ to 1.93×10⁻²⁷; partial η² = .980–.999 |
+| Hybrid (encrypt/decrypt pairs) | RSA .07737/1.57991 (.06942/1.53884) → 3.453/4.869 (3.26790/4.86074); ECDH .14058/.11024 (.13640/.11009) → 3.483/3.506 (3.23826/3.24504); X25519 .11464/.06793 (.10868/.06474) → 3.403/3.457 (3.24308/3.28852) | All 6 significant; Holm p = 5.33×10⁻⁴⁰ to 8.33×10⁻²¹; partial η² = .949–.976 |
+Within Symmetric and Hybrid values, each pair is encryption/decryption, with encryption first; inside parentheses are medians, and outside are means. The category analysis CSVs contain all five sizes and other descriptive statistics, and Appendix A gives the full repeated-measures ANOVA table. The primary omnibus tests support an input-size effect within each measured series, subject to the assumption limitations described below. [AI-1]
+
+The descriptive pattern is technically plausible because each measured operation processes the payload, but the timed workflows also include construction-specific work. Hashing computes a digest over the bytes. AES-GCM and ChaCha20-Poly1305 encrypt and authenticate the payload; CBC-HMAC pads and encrypts with AES-CBC and performs a separate HMAC pass over the IV and ciphertext. The latter's higher 10 MiB means are consistent with this additional work, but the experiment did not isolate its contribution. This distinction matters for device selection: the measured total-call time is more representative of the implemented call than an isolated primitive, yet it still excludes operating-system, protocol, and hardware conditions of an actual deployment.
+
+The Hybrid measurements include per-message key processing in addition to AES-GCM payload processing: RSA-OAEP wraps a generated AES key, whereas ECDH P-256 and X25519 establish a shared secret and use HKDF-SHA256 to derive the AES key [24]–[27]. At 1 KiB, RSA hybrid encryption averaged 0.077 ms versus 0.141 ms for ECDH and 0.115 ms for X25519, while RSA hybrid decryption averaged 1.580 ms versus 0.110 and 0.068 ms. At 10 MiB, the encryption means were 3.453, 3.483, and 3.403 ms, and decryption means were 4.869, 3.506, and 3.457 ms, respectively. This change in relative descriptive profiles is consistent with fixed key-processing costs being more visible for small payloads and bulk processing contributing more as payload size grows; the single end-to-end timer cannot establish how much each component contributed.
+
+These results complement rather than replace device-specific studies. Embedded evaluations have shown that runtime depends on input length and that platform hardware, software support, and protocol configuration affect measured cost [1], [2], [8], [9]. Here, every reported 10 MiB mean and median exceeded the corresponding 1 KiB value, and the within-series omnibus tests were significant after their stated corrections. However, the tests do not compare schemes against one another: no between-scheme or cross-category significance tests were run. The observed endpoint differences are descriptive and host-specific, not evidence that one construction is universally faster or more suitable for an IoT deployment.
+
+All repeated-measures ANOVAs rejected sphericity. Residual-normality diagnostics indicated departures in the assessed series; Hashing's saved RM-ANOVA did not include difference-score normality diagnostics, while Symmetric and Hybrid difference-score diagnostics rejected normality. Symmetric RQ1 also had a maximum within-size lag-1 correlation of .517, indicating possible temporal dependence. Hashing's Levene results rejected equal residual variances for SHA-256 and SHA3-256 but not BLAKE2b-256; this is a variance diagnostic, not a substitute for Mauchly's sphericity test. Friedman results were significant in the implemented Hashing and Symmetric analyses, but concern within-block ranks rather than arithmetic means; Hybrid had no Friedman test. The Hybrid position-adjusted OLS model is a sensitivity analysis, not conventional repeated-measures ANOVA, and its CR1 covariance estimate uses only 30 blocks. These qualifications limit the strength and scope of all RQ1 inferences. [AI-1]
+
+For a hypothetical IoT/IIoT deployment, the findings identify workload and implementation questions to test on the target endpoint: payload sizes, complete per-message operations, key provisioning, hardware acceleration, and protocol costs. They do not benchmark constrained devices, network latency, energy use, or field workloads, and do not identify a deployment choice. Figure 1 visualizes the Symmetric complete-call profiles on logarithmic time axes; it is descriptive and does not test between-scheme differences. [AI-1]
+
+![Figure 1](../../results/symmetric/rq1/analysis/run_20261119_02/symmetric_rq1_execution_time.png)
+
+*Figure 1. Mean execution time by payload size and operation for AES-256-GCM, ChaCha20-Poly1305, and AES-256-CBC with HMAC-SHA256 (CBC-HMAC). Time is shown on a logarithmic scale; the plot is descriptive, and no between-scheme test was conducted.*
+## 4.2 RQ2: Tampering and invalid-input responses
+
+
+| **Category** | **Observed functional outcomes** | **Mechanism and interpretation** |
+| --- | --- | --- |
 | Hashing | The documented RQ2 design has **30 functional checks** (3 algorithms × 5 sizes × 2 scenarios × 1 check): all 30 configurations are present. Of these, 15/15 modified inputs compared with the original trusted digest were rejected; 15/15 comparisons against an attacker-recomputed digest passed. RQ3 is separate: 1,350 timing observations, 450 per scenario. | A digest detects change only relative to a trusted reference. Because an unkeyed hash uses no secret, an attacker who can replace both data and digest can recompute a matching digest; this does not authenticate the data's source. |
-| Symmetric | 90 cases: 15 valid accepted; all 75 invalid rejected; no invalid plaintext released. 60 failures were at authentication and 15 at envelope validation. | GCM/Poly1305 reject invalid tags/ciphertext. CBC-HMAC rejects modified authenticated material before CBC decryption/unpadding. |
+| Symmetric | 90 cases: 15 valid accepted; all 75 invalid rejected; no invalid plaintext released. 60 failures were at authentication and 15 at envelope validation. | GCM and Poly1305 authentication rejected modified ciphertext, tags/nonces, and wrong-key cases. CBC-HMAC rejected modified authenticated material at MAC verification before CBC decryption/unpadding; malformed fields failed validation. |
 | Hybrid | 85 cases: 15 valid accepted; all 70 invalid rejected without plaintext release. Of the invalid cases, 15 ciphertext changes, 15 tag changes, and 10 valid replacement public keys reached AES-GCM authentication and failed; 5 wrapped-key changes failed RSA-OAEP unwrap; 10 malformed public keys failed parsing; and 15 malformed common fields failed envelope validation. | The CSV records distinct rejection stages. The replacement ECDH/X25519 keys completed key agreement and HKDF before AES-GCM authentication failed. |
+The 30 Hashing RQ2 configurations show the central distinction between integrity checking and authentication: comparing a message with a trusted digest detected the tested modifications, but recalculating an unkeyed digest after changing the data produced a matching digest. The attacker-recomputed case is therefore accepted because no secret or independently trusted reference binds the digest to an authorized source. This is a functional demonstration of the tested scenarios, not evidence about collision resistance or a general attack probability. RQ3 timing observations remain a separate dataset and are not additional RQ2 cases. [AI-1]
 
-The standalone Hashing RQ2 CSV contains the complete documented matrix: one functional check for each algorithm-size-scenario combination. RQ3 separately records timing observations and their verification outcomes; those measurements are not added to the RQ2 functional count. [AI-1]
+For Symmetric, the tested AES-GCM and ChaCha cases rejected invalid authenticated ciphertext without releasing plaintext. This matches the AEAD interface's fail-or-plaintext model [22]. CBC-HMAC provides confidentiality through AES-CBC and keyed integrity through HMAC; unlike the AEAD constructions, it performs a distinct MAC operation. In the tested Encrypt-then-MAC implementation, the receiver authenticates the IV and ciphertext before CBC decryption or unpadding, so the modified authenticated material was rejected at MAC verification. Vaudenay's padding-oracle work demonstrates why exposing validity information after CBC decryption can be dangerous in protocol designs [10]. The present outcome supports the implementation's tested ordering; it does not establish resistance to all side channels or replace a protocol-level audit.
 
-The outcomes demonstrate only tested behavior. AEAD and HMAC protect message integrity/confidentiality under key assumptions; shared-key verification does not identify a specific human sender. Hybrid encryption lets anyone with a recipient's public key create a ciphertext for that recipient; without signatures, acceptance does not establish sender identity. None of these experiments tested replay defense. No formal proof or exhaustive malformed-input assessment was conducted. [AI-1]
+The Hybrid outcomes exercise two different key-handling mechanisms around AES-GCM payload protection. RSA-OAEP wraps the randomly generated AES key, while ECDH/X25519 derive a shared secret and HKDF produces the AES key. Altered ciphertext or tags that reached AES-GCM failed authentication; altered wrapped keys or public-key/envelope fields could fail earlier at unwrap, parsing, or validation. Encryption to a recipient's public key does not authenticate the sender, and shared-key authentication only establishes that some key holder created the valid tag. The tested schemes add neither sender signatures nor replay protection. These distinctions matter in a device-to-gateway design: key establishment, payload confidentiality, integrity, device identity, and freshness require separate protocol decisions. [AI-1]
 
-### 4.3 RQ3: Processing time under adversarial conditions
+Taken together, the functional results demonstrate correct responses for the finite test matrix and no plaintext release in the observed invalid Symmetric and Hybrid cases. They do not prove that the implementations are secure against untested inputs, identify a specific human or device sender, or show that any construction was deployed in or would have secured the French supermarket systems. [AI-1]
+## 4.3 RQ3: Processing time under adversarial conditions
 
-| Category | Observations and Holm results | Interpretation |
-|---|---|---|
+
+| **Category** | **Observations and Holm results** | **Interpretation** |
+| --- | --- | --- |
 | Hashing | 1,350 raw timings; 45 paired comparisons, with 0/45 significant; smallest adjusted p = .3915. At 10 MiB, modified/trusted minus valid means: SHA-256 −96.08 µs (−1.96%); SHA3-256 +64.51 µs (+0.38%); BLAKE2b-256 +16.25 µs (+0.17%). | No adjusted difference detected; this is not evidence of equal times. Attacker digest computation was outside the interval. Block trend ρ = .581, p = .00075 makes inference exploratory. |
-| Symmetric, corrected raw run `run_20261119_02` | 2,700 raw timings; 75 paired comparisons, with 36/75 significant. AES-GCM: ciphertext tampering at 1/5 sizes and malformed inputs at 5/5; ChaCha: malformed 5/5; CBC-HMAC: all five invalid scenarios at all five sizes. | Failure paths have different costs. At 10 MiB, malformed envelopes averaged 1.97 µs for AES-GCM and 1.52 µs for ChaCha, compared with valid means 2.748 and 5.315 ms. CBC-HMAC ciphertext tampering averaged 5.592 ms versus 9.463 ms valid because failed MAC verification bypassed CBC decryption. |
+| Symmetric, corrected raw run run_20261119_02 | 2,700 raw timings; 75 paired comparisons, with 36/75 significant. AES-GCM: ciphertext tampering at 1/5 sizes and malformed inputs at 5/5; ChaCha: malformed 5/5; CBC-HMAC: all five invalid scenarios at all five sizes. | Failure paths have different costs. At 10 MiB, malformed envelopes averaged 1.97 µs for AES-GCM and 1.52 µs for ChaCha, compared with valid means 2.748 and 5.315 ms. CBC-HMAC ciphertext tampering averaged 5.592 ms versus 9.463 ms valid because failed MAC verification bypassed CBC decryption. |
 | Hybrid | 2,250 raw timings; 60 paired comparisons, with 17/60 significant: all 15 malformed-input contrasts and 2 key-material contrasts; none for ciphertext or tag changes. | Malformed inputs may stop before key processing/GCM; OAEP and agreement/GCM failures reach different stages. Lag-1 dependence (ρ = .426, p = .0213) downgrades all tests to conditional/exploratory. |
+RQ3 compares total processing time for a valid decryption with the corresponding invalid attempt matched by block, scheme, size, and scenario. It does not isolate integrity-verification overhead. In the observed paths, malformed envelopes could stop at parsing or validation; RSA key changes could fail during OAEP unwrapping; ECDH/X25519 key changes could proceed through agreement and HKDF before GCM rejected the payload; and ciphertext or tag changes could reach authenticated decryption. For CBC-HMAC, failed authentication can stop processing before CBC decryption and unpadding. The observed timing difference therefore reflects both the work completed and the stage at which each call stopped.
 
-These times cover each complete attempted decryption/verification workflow, not isolated “integrity overhead.” In particular, malformed structures can fail during parsing, while a well-formed tampering attempt may reach OAEP, key agreement/HKDF, GCM, or HMAC. The number of significant tests is conditional on the tested schedules and analysis assumptions. Non-significance is not equivalence, and a microsecond-scale local difference does not prove a practical remote timing vulnerability. [AI-1]
+The paired analyses detected Holm-adjusted differences in 0/45 Hashing, 36/75 Symmetric, and 17/60 Hybrid planned comparisons, as summarized in the table. These are counts of significant contrasts under the study's chosen analysis, not a probability that an input will be detected or a universal property of a scheme. Vaudenay and Lucky Thirteen show that failure handling and timing can enable attacks in particular CBC-based protocol constructions [10], [11]; they do not imply that the differences measured here are remotely observable or exploitable. Hashing excludes attacker-side digest recomputation, so its result does not estimate an attacker's full cost. Temporal dependence and the conditional assignment assumptions further downgrade RQ3 conclusions; non-significant comparisons do not establish equivalence.
 
-### 4.4 Limitations and security implications
-
+For hypothetical IoT/IIoT communication design, these results identify failure paths that a target-device or protocol-level assessment should measure, including malformed-input handling and failures after cryptographic work has begun. This experiment used one host and did not measure network latency, constrained hardware, energy, operational impact, or attacker observability. A shorter local rejection time means only that the tested call completed sooner under these conditions; it does not indicate stronger security. [AI-1]
+# 5. Limitations and security implications
 The measurements came from one machine and software environment using seeded pseudo-random payloads, not representative application files or streaming workloads. System load, CPU frequency, caches, and thermal state can affect timings. Randomized condition order does not guarantee independent blocks or eliminate carry-over. Warm-up schedules differed across categories.
 
-The Symmetric implementation generated a fresh nonce/IV using cryptographic randomness for each encryption call, but the actual values were not persisted. Source inspection confirmed generation; the audit could not independently verify per-key uniqueness or rule out a random collision. Collision risk at the observed scale is very low, not zero. Future runs should record non-secret nonce/IV values or check uniqueness automatically.
+The Symmetric implementation generated a fresh nonce/IV using cryptographic randomness for each encryption call, but the actual values were not persisted. Source inspection confirmed generation; the audit could not independently verify per-key uniqueness or rule out a random collision. Collision risk at the observed scale is very low, not zero. Future runs should record non-secret nonce/IV values or check uniqueness automatically. [AI-1]
 
-The report does not establish sender authentication, replay protection, hybrid forward secrecy against later compromise of static recipient private keys, or resistance to attacks outside the test matrix. Hashing's backend version is missing from metadata. The ANOVA assumptions were not all satisfied, and RQ3 dependence diagnostics require exploratory/conditional interpretation. Timing differences alone are not evidence of an exploitable side channel. No formal security proof was conducted. [AI-1]
+The report does not establish sender authentication, replay protection, hybrid forward secrecy against later compromise of static recipient private keys, or resistance to attacks outside the test matrix. It evaluates implementations on one host rather than deployed industrial devices or complete communication protocols. Hashing's backend version is missing from metadata. The ANOVA assumptions were not all satisfied, and RQ3 dependence diagnostics require exploratory/conditional interpretation. Timing differences alone are not evidence of an exploitable side channel. No formal security proof was conducted. [AI-1]
+# 6. Conclusion
+For RQ1, the measured means increased from 1 KiB to 10 MiB in every reported series, with small initial decryption dips in two Hybrid series. The repeated-measures tests indicated within-series input-size effects, but rejected sphericity and other diagnostics, sequential timing, and the single-host design limit the strength and generalisability of inference. No cross-scheme or cross-category statistical ranking is supported. For RQ2, the trusted-digest checks detected the tested Hashing modifications, while attacker-recomputed unkeyed digests matched; Symmetric and Hybrid invalid cases were rejected without plaintext release in the tested matrix. For RQ3, 0/45 Hashing, 36/75 Symmetric, and 17/60 Hybrid comparisons were significant after Holm correction. Dependence and assignment limitations make these findings exploratory or conditional, not evidence of equivalence or exploitable side channels. [AI-1]
 
-## 5. Conclusion
+The contribution is a reproducible, implementation-level account of how these nine constructions behaved across payload sizes and selected adversarial paths, supplementing prior platform-specific IoT benchmarks with measurements of complete calls on one host. In the hypothetical Cybersecurity Research Engineer scenario, it can inform a test plan for secure IoT/IIoT communications; it cannot select a deployment solution or predict performance on an industrial controller. Future work should repeat the measurements on resource-constrained IoT/IIoT hardware, add memory and energy measures, evaluate network latency and throughput, and test sender authentication, replay protection, and protocol-level failure behaviour. Improving block independence and recording complete environment and nonce/IV metadata would also strengthen reproducibility. Cryptography remains one layer of a broader architecture requiring secure access control, device identity, key management, secure updates, network segmentation, and replay protection. [AI-1]
+# References
+Bibliographic entries were compiled with AI assistance. [AI-1] The student must complete the prompt citation and verify every bibliographic entry against its source before submission.
 
-Across all nine implementations, the 10 MiB mean exceeded the 1 KiB mean, with slight 10 KiB dips in two hybrid decryption series. The experiments show distinct security roles: hashes require a trusted digest; AEAD and CBC-HMAC rejected tested tampering without releasing plaintext; hybrid schemes combined public-key key processing with AES-GCM payload protection. RQ3 differences varied by failure stage and category, but dependence and assignment limitations prevent confirmatory or equivalence claims. These findings answer the RQs only for the tested code, conditions, and host. [AI-1]
+[1] C. Silva, V. A. Cunha, J. P. Barraca, and R. L. Aguiar, “Analysis of the cryptographic algorithms in IoT communications,” *Information Systems Frontiers*, vol. 26, pp. 1243–1260, 2024, doi: 10.1007/s10796-023-10383-9.
 
-## References
+[2] P. Kietzmann, L. Boeckmann, L. Lanzieri, T. C. Schmidt, and M. Wählisch, “A performance study of crypto-hardware in the low-end IoT,” in *Proc. 18th Int. Conf. Embedded Wireless Syst. Netw. (EWSN ’21)*, 2021, pp. 79–90, doi: 10.5555/3451271.3451279. [Online]. Available: https://dl.acm.org/doi/10.5555/3451271.3451279
 
-Bibliographic entries were compiled with AI assistance and checked against the linked publications and standards; the student must complete the prompt citation and verify the final list [AI-1].
+[3] I. Chaperon, D. Leloup, O. Pinaud, M. Rescan, and F. Reynaud, “A disastrous day for French supermarkets after massive cyberattack targets refrigeration systems,” *Le Monde*, Oct. 13, 2026. [Online]. Available: https://www.lemonde.fr/en/economy/article/2026/10/13/a-disastrous-day-for-french-supermarkets-after-massive-cyberattack-targets-refrigeration-systems_6758535_19.html. [Accessed: Nov. 20, 2026].
 
-[1] T. Kalibera and R. E. Jones, “Rigorous benchmarking in reasonable time,” in *Proc. ACM SIGPLAN Int. Symp. Memory Management (ISMM)*, 2013, pp. 63–74, doi: 10.1145/2464157.2464160.
+[4] A. Charlton and D.-A. Durbin, “Cyberattacks hit European supermarket chains and disrupt refrigeration systems,” *Associated Press*, Oct. 13, 2026. [Online]. Available: https://apnews.com/article/78a813a8efd466b360655339f96083dc. [Accessed: Nov. 20, 2026].
 
-[2] National Institute of Standards and Technology, *Secure Hash Standard (SHS)*, FIPS PUB 180-4, Aug. 2015. [Online]. Available: https://csrc.nist.gov/pubs/fips/180-4/upd1/final
+[5] Unit 42, “Turning Up the Heat: Inside the Attacks on Europe’s Refrigeration Systems,” *Palo Alto Networks*, Nov. 6, 2026. [Online]. Available: https://origin-unit42.paloaltonetworks.com/europes-refrigeration-systems-attacks/. [Accessed: Nov. 20, 2026].
 
-[3] National Institute of Standards and Technology, *SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions*, FIPS PUB 202, Aug. 2015. [Online]. Available: https://csrc.nist.gov/pubs/fips/202/final
+[6] Nozomi Networks, “About Us,” n.d. [Online]. Available: https://www.nozominetworks.com/company. [Accessed: Nov. 20, 2026].
 
-[4] M.-J. O. Saarinen and J.-P. Aumasson, “The BLAKE2 cryptographic hash and message authentication code (MAC),” RFC 7693, Nov. 2015. [Online]. Available: https://www.rfc-editor.org/rfc/rfc7693
+[7] Nozomi Networks Labs, “Nozomi Networks Labs,” n.d. [Online]. Available: https://www.nozominetworks.com/labs. [Accessed: Nov. 20, 2026].
 
-[5] J.-P. Aumasson, S. Neves, Z. Wilcox-O’Hearn, and C. Winnerlein, “BLAKE2: Simpler, smaller, fast as MD5,” in *Applied Cryptography and Network Security*, LNCS 7954, 2013, pp. 119–135, doi: 10.1007/978-3-642-38980-1_8.
+[8] H. Bühler, A. Walz, and A. Sikora, “Benchmarking of symmetric cryptographic algorithms on a deeply embedded system,” *IFAC-PapersOnLine*, vol. 55, no. 4, pp. 266–271, 2022, doi: 10.1016/j.ifacol.2022.06.044.
 
-[6] H. Krawczyk, M. Bellare, and R. Canetti, “HMAC: Keyed-hashing for message authentication,” RFC 2104, Feb. 1997. [Online]. Available: https://www.rfc-editor.org/rfc/rfc2104
+[9] S. Blanc, A. Lahmadi, K. Le Gouguec, M. Minier, and L. Sleem, “Benchmarking of lightweight cryptographic algorithms for wireless IoT networks,” *Wireless Networks*, vol. 28, pp. 3453–3476, 2022, doi: 10.1007/s11276-022-03046-1.
 
-[7] National Institute of Standards and Technology, *Advanced Encryption Standard (AES)*, FIPS PUB 197, updated May 2023. [Online]. Available: https://csrc.nist.gov/pubs/fips/197/final
+[10] S. Vaudenay, “Security flaws induced by CBC padding—applications to SSL, IPSEC, WTLS, ...,” in *Advances in Cryptology—EUROCRYPT 2002*, Lecture Notes in Computer Science, vol. 2332. Berlin, Germany: Springer, 2002, pp. 534–545, doi: 10.1007/3-540-46035-7_35.
 
-[8] M. Dworkin, *Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC*, NIST SP 800-38D, Nov. 2007. [Online]. Available: https://csrc.nist.gov/pubs/sp/800/38/d/final
+[11] N. J. AlFardan and K. G. Paterson, “Lucky Thirteen: Breaking the TLS and DTLS record protocols,” in *Proc. 2013 IEEE Symp. Security and Privacy*, 2013, pp. 526–540, doi: 10.1109/SP.2013.42.
 
-[9] Y. Nir and A. Langley, “ChaCha20 and Poly1305 for IETF protocols,” RFC 8439, June 2018. [Online]. Available: https://www.rfc-editor.org/rfc/rfc8439
+[12] T. Kalibera and R. E. Jones, “Rigorous benchmarking in reasonable time,” in *Proc. ACM SIGPLAN Int. Symp. Memory Management (ISMM)*, 2013, pp. 63–74, doi: 10.1145/2464157.2464160.
 
-[10] Python Cryptographic Authority, *cryptography 50.0.2 documentation*, 2026. [Online]. Available: https://cryptography.io/en/50.0.2/
+[13] National Institute of Standards and Technology, *Secure Hash Standard (SHS)*, FIPS PUB 180-4, Aug. 2015. [Online]. Available: https://csrc.nist.gov/pubs/fips/180-4/upd1/final
 
-[11] M. Dworkin, *Recommendation for Block Cipher Modes of Operation: Methods and Techniques*, NIST SP 800-38A, Dec. 2001. [Online]. Available: https://csrc.nist.gov/pubs/sp/800/38/a/final
+[14] National Institute of Standards and Technology, *SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions*, FIPS PUB 202, Aug. 2015. [Online]. Available: https://csrc.nist.gov/pubs/fips/202/final
 
-[12] K. Moriarty, B. Kaliski, J. Jonsson, and A. Rusch, “PKCS #1: RSA Cryptography Specifications Version 2.2,” RFC 8017, Nov. 2016. [Online]. Available: https://www.rfc-editor.org/rfc/rfc8017
+[15] M.-J. O. Saarinen and J.-P. Aumasson, “The BLAKE2 cryptographic hash and message authentication code (MAC),” RFC 7693, Nov. 2015. [Online]. Available: https://www.rfc-editor.org/rfc/rfc7693
 
-[13] A. Langley, M. Hamburg, and S. Turner, “Elliptic curves for security,” RFC 7748, Jan. 2016. [Online]. Available: https://www.rfc-editor.org/rfc/rfc7748
+[16] J.-P. Aumasson, S. Neves, Z. Wilcox-O’Hearn, and C. Winnerlein, “BLAKE2: Simpler, smaller, fast as MD5,” in *Applied Cryptography and Network Security*, Lecture Notes in Computer Science, vol. 7954, 2013, pp. 119–135, doi: 10.1007/978-3-642-38980-1_8.
 
-[14] H. Krawczyk and P. Eronen, “HMAC-based extract-and-expand key derivation function (HKDF),” RFC 5869, May 2010. [Online]. Available: https://www.rfc-editor.org/rfc/rfc5869
+[17] H. Krawczyk, M. Bellare, and R. Canetti, “HMAC: Keyed-hashing for message authentication,” RFC 2104, Feb. 1997. [Online]. Available: https://www.rfc-editor.org/rfc/rfc2104
 
-[15] E. Barker, L. Chen, A. Roginsky, A. Vassilev, and R. Davis, *Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography*, NIST SP 800-56A Rev. 3, Apr. 2018. [Online]. Available: https://csrc.nist.gov/pubs/sp/800/56/a/r3/final
+[18] National Institute of Standards and Technology, *Advanced Encryption Standard (AES)*, FIPS PUB 197, updated May 2023. [Online]. Available: https://csrc.nist.gov/pubs/fips/197/final
 
-[16] S. Greenhouse and S. Geisser, “On methods in the analysis of profile data,” *Psychometrika*, vol. 24, no. 2, pp. 95–112, 1959, doi: 10.1007/BF02289823.
+[19] M. Dworkin, *Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC*, NIST SP 800-38D, Nov. 2007. [Online]. Available: https://csrc.nist.gov/pubs/sp/800/38/d/final
 
-[17] S. Holm, “A simple sequentially rejective multiple test procedure,” *Scandinavian Journal of Statistics*, vol. 6, no. 2, pp. 65–70, 1979, doi: 10.2307/4615733.
+[20] Y. Nir and A. Langley, “ChaCha20 and Poly1305 for IETF protocols,” RFC 8439, June 2018. [Online]. Available: https://www.rfc-editor.org/rfc/rfc8439
 
-[18] M. Friedman, “The use of ranks to avoid the assumption of normality implicit in the analysis of variance,” *Journal of the American Statistical Association*, vol. 32, no. 200, pp. 675–701, 1937, doi: 10.1080/01621459.1937.10503522.
+[21] Python Cryptographic Authority, *cryptography 50.0.2 documentation*, 2026. [Online]. Available: https://cryptography.io/en/50.0.2/
 
-[19] S. S. Shapiro and M. B. Wilk, “An analysis of variance test for normality (complete samples),” *Biometrika*, vol. 52, nos. 3–4, pp. 591–611, 1965, doi: 10.1093/biomet/52.3-4.591.
+[22] D. McGrew, “An interface and algorithms for authenticated encryption,” RFC 5116, Jan. 2008, doi: 10.17487/RFC5116. [Online]. Available: https://www.rfc-editor.org/rfc/rfc5116
 
-## Acknowledgements and AI disclosure
+[23] M. Dworkin, *Recommendation for Block Cipher Modes of Operation: Methods and Techniques*, NIST SP 800-38A, Dec. 2001. [Online]. Available: https://csrc.nist.gov/pubs/sp/800/38/a/final
 
+[24] K. Moriarty, B. Kaliski, J. Jonsson, and A. Rusch, “PKCS #1: RSA Cryptography Specifications Version 2.2,” RFC 8017, Nov. 2016. [Online]. Available: https://www.rfc-editor.org/rfc/rfc8017
+
+[25] A. Langley, M. Hamburg, and S. Turner, “Elliptic curves for security,” RFC 7748, Jan. 2016. [Online]. Available: https://www.rfc-editor.org/rfc/rfc7748
+
+[26] H. Krawczyk and P. Eronen, “HMAC-based extract-and-expand key derivation function (HKDF),” RFC 5869, May 2010. [Online]. Available: https://www.rfc-editor.org/rfc/rfc5869
+
+[27] E. Barker, L. Chen, A. Roginsky, A. Vassilev, and R. Davis, *Recommendation for Pair-Wise Key-Establishment Schemes Using Discrete Logarithm Cryptography*, NIST SP 800-56A Rev. 3, Apr. 2018. [Online]. Available: https://csrc.nist.gov/pubs/sp/800/56/a/r3/final
+
+[28] S. W. Greenhouse and S. Geisser, “On methods in the analysis of profile data,” *Psychometrika*, vol. 24, no. 2, pp. 95–112, 1959, doi: 10.1007/BF02289823.
+
+[29] S. Holm, “A simple sequentially rejective multiple test procedure,” *Scandinavian Journal of Statistics*, vol. 6, no. 2, pp. 65–70, 1979, doi: 10.2307/4615733.
+
+[30] S. S. Shapiro and M. B. Wilk, “An analysis of variance test for normality (complete samples),” *Biometrika*, vol. 52, nos. 3–4, pp. 591–611, 1965, doi: 10.1093/biomet/52.3-4.591.
+
+[31] M. Friedman, “The use of ranks to avoid the assumption of normality implicit in the analysis of variance,” *Journal of the American Statistical Association*, vol. 32, no. 200, pp. 675–701, 1937, doi: 10.1080/01621459.1937.10503522.
+# Acknowledgements and AI disclosure
 **Acknowledgements:** [Student: acknowledge assistance/funding, or state that there was none.]
 
-**AI use:** AI assistance was used to summarize project evidence, organize sections, and draft text. It did not generate experiment observations. Sections marked [AI-1] contain AI-assisted text and must be checked and revised by the student.
+**AI use:** AI assistance was used to summarize project evidence, organize sections, and draft text; it did not generate experiment observations. [AI-1] marks AI-assisted prose that the student must check and revise.
 
-[AI-1] “[Insert the exact prompt text or prompt texts used for report drafting; the verbatim prompts and dates must be completed from the project chat history.]” ChatGPT, [version], OpenAI, [Day Month Year], chat.openai.com.
+[AI-1] "[TODO: insert the exact prompt text used to request or edit this report, verbatim]." ChatGPT, [TODO: model/version], OpenAI, [TODO: Day Month Year], chat.openai.com.
 
-## Appendix A. Full RQ1 repeated-measures results
+[TODO: Add a separate citation in the required format for each additional prompt used to generate or revise report text.]
 
-The following values are transcribed from the authoritative RM-ANOVA outputs. Adjusted p-values are Holm-corrected within each category. The complete diagnostics are in the source CSVs cited below. [AI-1]
+# Appendix A. Full RQ1 repeated-measures results
+The following values are transcribed from the authoritative repeated-measures ANOVA outputs. Adjusted p-values are Holm-corrected within each category. For compact row labels, AES-GCM means AES-256-GCM, ChaCha means ChaCha20-Poly1305, and CBC-HMAC means AES-256-CBC with HMAC-SHA256; RSA, ECDH, and X25519 refer to the complete asymmetric-based hybrid schemes defined in Section 2.1. The analysis CSVs are: `results/hashing/rq1/randomized_block/repeated_measures/hashing_repeated_measures_anova.csv`; `results/symmetric/rq1/analysis/run_20261119_02/symmetric_rq1_repeated_measures_anova.csv`; and `results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_repeated_measures_anova.csv`. [AI-1]
 
-| Category / operation | F | GG df (numerator, denominator) | Holm-adjusted p | Partial η² |
-|---|---:|---:|---:|---:|
+| **Category / operation** | **F** | **GG df (numerator, denominator)** | **Holm-adjusted p** | **Partial η²** |
+| --- | --- | --- | --- | --- |
 | Hash SHA-256 | 24904.48 | 1.014, 29.408 | 2.15×10⁻⁴⁴ | .99884 |
 | Hash SHA3-256 | 78241.53 | 1.033, 29.966 | 1.82×10⁻⁵² | .99963 |
 | Hash BLAKE2b-256 | 7197.35 | 1.002, 29.070 | 2.17×10⁻³⁶ | .99599 |
@@ -189,31 +250,14 @@ The following values are transcribed from the authoritative RM-ANOVA outputs. Ad
 | ECDH hybrid decrypt | 671.17 | 1.059, 30.717 | 4.83×10⁻²² | .959 |
 | X25519 hybrid encrypt | 542.94 | 1.037, 30.068 | 8.33×10⁻²¹ | .949 |
 | X25519 hybrid decrypt | 631.29 | 1.046, 30.335 | 1.39×10⁻²¹ | .956 |
-
-## Appendix B. Evidence paths and count reconciliation
-
-Authoritative evidence files:
-
-- Hashing RQ1: `results/hashing/rq1/randomized_block/hashing_randomized_block_benchmarks.csv`; descriptive: `hashing_randomized_block_descriptive.csv`; ANOVA: `repeated_measures/hashing_repeated_measures_anova.csv`.
-- Hashing RQ2 baseline: `results/hashing/rq2/baseline/hashing_tampering.csv` (30 rows; 15 per scenario). Hashing RQ3 raw: `results/hashing/rq3/tampering_performance/hashing_tampering_performance.csv` (1,350 timing rows; 450 per scenario); paired tests: `results/hashing/rq3/tampering_performance/hashing_tampering_performance_paired_tests.csv` (45 comparison rows; 15 per comparison type, each matched over 30 blocks).
-- Symmetric RQ1: `results/symmetric/rq1/runs/run_20261119_01/symmetric_rq1_benchmarks.csv`; ANOVA: `results/symmetric/rq1/analysis/run_20261119_02/symmetric_rq1_repeated_measures_anova.csv`.
-- Symmetric RQ2: `results/symmetric/rq2/runs/run_20261119_01/symmetric_rq2_outcomes.csv`.
-- Symmetric RQ3 corrected raw only: `results/symmetric/rq3/runs/run_20261119_02/symmetric_rq3_verification.csv`; paired tests: `results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_paired_tests.csv`. Superseded run `run_20261119_01` is excluded.
-- Asymmetric RQ1 raw: `results/asymmetric/rq1/runs/run_20261119_01/asymmetric_rq1_benchmarks.csv`; repeated-measures output: `results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_repeated_measures_anova.csv`.
-- Asymmetric RQ2 raw: `results/asymmetric/rq2/runs/run_20261119_01/asymmetric_rq2_outcomes.csv` (85 cases: 15 valid and 70 invalid, with rejection stages summarized in Section 4.2).
-- Asymmetric RQ3 raw: `results/asymmetric/rq3/runs/run_20261119_01/asymmetric_rq3_verification.csv`; paired tests: `results/asymmetric/rq3/analysis/run_20261119_01/asymmetric_rq3_paired_tests.csv`.
-
-The Hashing RQ2 CSV contains 30 rows, matching its documented matrix of three algorithms, five input sizes, and two single-check tampering scenarios. The separate RQ3 CSV contains 1,350 timed observations, with verification outcomes recorded for its valid and two modified-data scenarios; those outcomes remain part of RQ3 and are not added to the RQ2 functional count. [AI-1]
-
-![Asymmetric-based hybrid RQ1 encryption and decryption times](../../results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_execution_time.png)
+![Figure 2](../../results/asymmetric/rq1/analysis/run_20261119_01/asymmetric_rq1_execution_time.png)
 
 *Figure 2. Hybrid workflow means by size and operation. The plot compares descriptive profiles, not statistically tested cross-scheme rankings.*
 
-![Hashing repeated-measures residual Q-Q diagnostics](../../results/hashing/rq1/randomized_block/repeated_measures/hashing_repeated_measures_diagnostics.png)
+![Figure 3](../../results/hashing/rq1/randomized_block/repeated_measures/hashing_repeated_measures_diagnostics.png)
 
 *Figure 3. Hashing residual Q-Q diagnostics. Shown as an assumption diagnostic, not a performance plot.*
 
-![Symmetric corrected RQ3 decryption-attempt times](../../results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_execution_time.png)
+![Figure 4](../../results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_execution_time.png)
 
 *Figure 4. Symmetric corrected-run RQ3 times by failure scenario and payload size; raw data are from run_20261119_02.*
-
