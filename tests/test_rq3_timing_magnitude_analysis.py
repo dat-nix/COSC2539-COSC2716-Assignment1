@@ -1,6 +1,6 @@
 import unittest
 
-from rq3_timing_magnitude_analysis import condition_index, missing_and_extra_keys, paired_metrics
+from analysis.rq3_timing_magnitude_analysis import condition_index, missing_and_extra_keys, paired_metrics
 
 
 class PairedMetricsTests(unittest.TestCase):

@@ -22,7 +22,7 @@ INPUT_SIZES = (1024, 10_240, 102_400, 1_048_576, 10_485_760)
 BLOCK_IDS = tuple(range(1, 31))
 MIB_BYTES = 1024 * 1024
 
-PROJECT_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_DIR = PROJECT_ROOT / "results" / "rq1_matched_comparisons"
 
 

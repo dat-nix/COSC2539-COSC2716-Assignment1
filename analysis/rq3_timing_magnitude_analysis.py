@@ -30,7 +30,8 @@ SIZE_LABELS = {
     10_485_760: "10 MiB",
 }
 ALPHA = 0.05
-DEFAULT_OUTPUT = Path("results/rq3_timing_magnitude_analysis_run_20261121_01")
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_OUTPUT = PROJECT_ROOT / "results/rq3_timing_magnitude_analysis_run_20261121_01"
 
 HASH_VALID = "valid_data_trusted_digest"
 HASH_INVALID = (
@@ -818,7 +819,7 @@ def analyze(root: Path, output_dir: Path) -> tuple[list[dict], dict]:
 
     validation = {
         "analysis": "Descriptive matched magnitude analysis of existing RQ3 valid-versus-specified-invalid processing timings",
-        "script": "rq3_timing_magnitude_analysis.py",
+        "script": "analysis/rq3_timing_magnitude_analysis.py",
         "input_files": file_inventory,
         "run_linkage_checks": linkage,
         "design_validation": categories_validation,
@@ -859,7 +860,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT, help="new output directory; existing paths are never overwritten")
     args = parser.parse_args(argv)
-    root = Path(__file__).resolve().parent
+    root = Path(__file__).resolve().parents[1]
     rows, validation = analyze(root, args.output_dir)
     print(f"Validated and wrote {len(rows)} matched descriptive contrasts.")
     print(f"Magnitude CSV: {validation['output']['csv_path']}")

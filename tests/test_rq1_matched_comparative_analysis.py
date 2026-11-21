@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from rq1_matched_comparative_analysis import (
+from analysis.rq1_matched_comparative_analysis import (
     DEFAULT_SPECS,
     DESCRIPTIVE_FIELDS,
     INPUT_SIZES,
