@@ -856,8 +856,16 @@ def _plot_rq3(rows: list[dict], path: Path, sizes: list[int]) -> None:
         axis.set_xlabel("Payload size")
         axis.grid(True, which="both", alpha=0.25)
     axes[0].set_ylabel("Mean complete decryption time (seconds; log scale)")
-    axes[-1].legend(fontsize=7, loc="best")
-    figure.tight_layout()
+    handles, labels = axes[0].get_legend_handles_labels()
+    figure.legend(
+        handles,
+        labels,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 0.99),
+        ncol=3,
+        fontsize=7,
+    )
+    figure.tight_layout(rect=(0, 0, 1, 0.86))
     figure.savefig(path, dpi=160)
     plt.close(figure)
 

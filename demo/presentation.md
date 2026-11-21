@@ -84,7 +84,7 @@ Run: **python -m demo.run_demo hybrid**
 
 # RQ3 | Symmetric complete-path example
 
-![RQ3 Holm-significant paired contrasts: Hashing 0 of 45; Symmetric 36 of 75; Hybrid 17 of 60.](results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_execution_time.png)
+![Corrected run_20261119_02: Symmetric RQ3 mean decryption time by failure scenario and payload size.](results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_execution_time.png)
 
 ::: notes
 4:35–5:15. Show the corrected Symmetric RQ3 chart and read the Holm-significant counts: Hashing 0/45, Symmetric 36/75, Hybrid 17/60. The CBC-HMAC 10 MiB example was faster because this specified path rejected at MAC verification before CBC decryption: 5.592 ms compared with 9.463 ms valid, a mean paired change of −3.871 ms (adjusted p = .0075). This is a complete-path difference, not isolated authentication overhead. Faster rejection is not stronger security. These comparisons are conditional/exploratory, are affected by temporal dependence, and do not demonstrate a remote timing side channel. Non-significance is not equivalence. Transition: give the bounded conclusion.

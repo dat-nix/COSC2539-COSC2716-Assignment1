@@ -129,7 +129,7 @@ def _postprocess_presentation(path: Path) -> None:
                 )
             elif item.filename == "ppt/slides/slide8.xml":
                 content = _style_chart_caption(
-                    content, "RQ3 Holm-significant paired contrasts:"
+                    content, "Corrected run_20261119_02: Symmetric RQ3 mean decryption time"
                 )
             entries.append((item, content))
     with ZipFile(path, "w", compression=ZIP_DEFLATED) as output_zip:
