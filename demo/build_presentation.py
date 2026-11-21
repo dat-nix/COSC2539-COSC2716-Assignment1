@@ -17,8 +17,8 @@ SOURCE = DEMO_DIR / "presentation.md"
 TEMPLATE = DEMO_DIR / "reference.pptx"
 DEFAULT_OUTPUT = DEMO_DIR / "presentation.pptx"
 REQUIRED_IMAGES = (
-    ROOT / "results/symmetric/rq1/analysis/run_20261119_02/symmetric_rq1_execution_time.png",
-    ROOT / "results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_execution_time.png",
+    DEMO_DIR / "assets/symmetric_rq1_execution_time.png",
+    DEMO_DIR / "assets/symmetric_rq3_execution_time.png",
 )
 
 

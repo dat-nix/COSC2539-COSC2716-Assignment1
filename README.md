@@ -1,6 +1,6 @@
 # COSC2539 / COSC2716 — Cryptography Under Adversarial Conditions
 
-This repository contains a Python implementation-level study of selected cryptographic constructions under controlled payload-size and tampering conditions. It includes the implementations, experiment runners, saved research evidence, analysis, tests, and a short demonstration/presentation. It is not a benchmark of deployed IoT devices or a complete industrial security assessment.
+This repository contains Python implementations and a demonstration/presentation for an implementation-level study of selected cryptographic constructions under controlled payload-size and tampering conditions. It is not a benchmark of deployed IoT devices or a complete industrial security assessment.
 
 ## Research questions
 
@@ -22,9 +22,9 @@ Hashing provides an unkeyed digest, not sender authentication. AEAD and CBC-HMAC
 
 ## Contributions and scope
 
-The project's main contributions are the Python implementations, randomized-block experiment runners, analysis scripts, automated tests, matched descriptive RQ1 comparisons, RQ3 timing-magnitude analysis, and a demonstration wrapper that calls the project implementations. The available raw observations and saved analysis results are retained under `results/` with their category-specific paths.
+The project's main contributions are the Python implementations, randomized-block experiment runners, analysis scripts, automated tests, matched descriptive RQ1 comparisons, RQ3 timing-magnitude analysis, and a demonstration wrapper that calls the project implementations. The research datasets and saved statistical outputs remain in the author's local workspace and are not included in the public repository.
 
-The five payload sizes were 1 KiB, 10 KiB, 100 KiB, 1 MiB, and 10 MiB, with 30 measured blocks; five warm-up executions were excluded from measurement. Warm-up scheduling differs by category and is documented with the saved metadata and local report. The experiments were conducted on one host and do not measure IoT-device energy, memory, network latency, or deployed protocol behavior. Some statistical assumptions and temporal-independence diagnostics require caution. See the saved result metadata and the report retained in the author's local workspace for the detailed methods and limitations.
+The study used five payload sizes (1 KiB, 10 KiB, 100 KiB, 1 MiB, and 10 MiB), 30 measured blocks, and excluded five warm-ups; warm-up scheduling differs by category. It was conducted on one host and does not measure IoT-device energy, memory, network latency, or deployed protocol behavior. Some statistical assumptions and temporal-independence diagnostics require caution. Raw data, saved analyses, and the full report are intentionally local-only.
 
 ## Repository layout
 
@@ -32,15 +32,14 @@ The five payload sizes were 1 KiB, 10 KiB, 100 KiB, 1 MiB, and 10 MiB, with 30 m
 hashing/                         Hashing implementations, runners, and analysis
 symmetric/                       Symmetric implementations, runners, and analysis
 asymmetric/                      Asymmetric-based hybrid implementations and analysis
+analysis/                         Cross-category RQ1/RQ3 comparative analysis
 tests/                            Automated functional and analysis tests
 requirements/                     Pinned dependency sets
-results/                          Raw observations, metadata, saved analyses, and figures
-demo/                             Demo wrapper, slide source, presentation, and script
-rq1_matched_comparative_analysis.py
-rq3_timing_magnitude_analysis.py
+demo/                             Demo wrapper, slide source, charts, deck, and script
+demo/assets/                      Two chart images required by the presentation
 ```
 
-The Markdown report and its DOCX/PDF exports are intentionally kept in the author's local `reports/` directory and are excluded from this repository's current Git tracking. `AGENTS.md` and internal audit notes are also local-only. The `results/` directory remains tracked because it provides the evidence used by the analyses and presentation; it contains generated research data, not a fresh experiment run by installation or tests.
+`reports/`, `results/`, and `AGENTS.md` are ignored and kept in the author's local workspace. A public clone includes only the two presentation chart images in `demo/assets/`; those are exact copies of existing generated figures, not raw datasets. Their original CSV paths and SHA-256 provenance are recorded in `demo/CHART_SOURCES.md`. Full saved-data analysis and report export require the local research files, which are not part of this repository.
 
 ## Setup
 
@@ -56,13 +55,16 @@ The two requirement files include the shared pinned analysis dependencies. The e
 
 ## Tests
 
-Run the functional and analysis unit tests from the repository root:
+For a public clone, run the demo and core cryptographic tests from the repository root:
 
 ```sh
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -p 'test_demo.py' -v
+python -m unittest discover -s tests -p 'test_hashing.py' -v
+python -m unittest discover -s tests -p 'test_symmetric_crypto.py' -v
+python -m unittest discover -s tests -p 'test_asymmetric_hybrid.py' -v
 ```
 
-The suite includes small runner checks with test-sized inputs; it does not run the full experiment suites or overwrite saved research results.
+The complete test suite also includes integration checks that read existing research data under `results/`; those checks require the local research bundle. Unit tests do not replace or regenerate the saved experiments.
 
 ## Demonstrations
 
@@ -84,7 +86,7 @@ The editable deck and its PDF preview are in `demo/presentation.pptx` and `demo/
 python3 demo/build_presentation.py --output /tmp/cosc2539-presentation-preview.pptx
 ```
 
-The builder requires Pandoc and uses the presentation template and chart files already in the repository. LibreOffice can optionally render a PDF preview. See `demo/README.md` for the presentation workflow, chart provenance, run-of-show, and recording checklist.
+The builder requires Pandoc and uses the presentation template and bundled chart images in `demo/assets/`; it does not need `results/`. LibreOffice can optionally render a PDF preview. See `demo/README.md` for the presentation workflow, chart provenance, run-of-show, and recording checklist.
 
 ## Running experiments and analyses
 
@@ -96,7 +98,7 @@ python -m symmetric.experiment_runner rq1 --output-dir results/symmetric/rq1/run
 python -m asymmetric.experiment_runner rq1 --output-dir results/asymmetric/rq1/runs/new_run
 ```
 
-Use each runner's `--help` for available options. Analysis entry points include `python -m hashing.statistical_analysis --help`, the corresponding package analysis modules, and the root RQ1/RQ3 descriptive scripts. Analysis output directories should also be new and distinct from saved authoritative outputs. The matched RQ1 analysis is descriptive; do not interpret those comparisons as inferential between-scheme tests.
+Use each runner's `--help` for available options. Experiment runners write new files under the ignored `results/` path. Analysis entry points include the package analysis modules and `python -m analysis.rq1_matched_comparative_analysis --help` / `python -m analysis.rq3_timing_magnitude_analysis --help`. The comparative analyses require the corresponding CSV inputs under local `results/`, which are not available from a fresh clone. The matched RQ1 analysis is descriptive; do not interpret those comparisons as inferential between-scheme tests.
 
 ## Known limitations
 
@@ -106,4 +108,4 @@ Use each runner's `--help` for available options. Analysis entry points include 
 - RQ3 contrasts cover complete paths and reuse valid observations across scenario contrasts; they do not isolate authentication cost or prove remote exploitability.
 - Saved records do not independently establish uniqueness of every nonce/IV, and hashing backend version metadata is incomplete.
 
-Consult the local report and saved outputs for full statistical qualifications and scenario definitions.
+Consult the author's local report and saved outputs for full statistical qualifications, scenario definitions, and result tables.

@@ -65,7 +65,7 @@ Run: **python -m demo.run_demo hybrid**
 
 # RQ1 | Payload size and measured time
 
-![Displayed chart: Symmetric category only. All 15 within-series RQ1 tests were Holm-significant; no between-scheme significance tests were conducted.](results/symmetric/rq1/analysis/run_20261119_02/symmetric_rq1_execution_time.png)
+![Displayed chart: Symmetric category only. All 15 within-series RQ1 tests were Holm-significant; no between-scheme significance tests were conducted.](demo/assets/symmetric_rq1_execution_time.png)
 
 ::: notes
 3:05–4:05. Show the existing Symmetric RQ1 chart and identify it as a Symmetric-category example. Explain the rising profiles as payload size increases. At 10 MiB, descriptive mean encryption times (ms) were 4.83, 16.37, and 9.54 for SHA-256, SHA3-256, and BLAKE2b-256; 2.76, 5.40, and 14.01 for AES-GCM, ChaCha20-Poly1305, and CBC-HMAC; and 3.45, 3.48, and 3.40 for RSA, ECDH, and X25519 Hybrid. These are descriptive comparisons across category-specific workflows, not statistical rankings. All 15 repeated-measures ANOVA input-size tests remained Holm-significant. Partial η² describes the input-size effect within each series, not between-scheme superiority. Mauchly rejected sphericity; residual-normality departures and possible temporal dependence qualify inference. No between-scheme significance tests were conducted. Transition: describe the functional outcomes.
@@ -84,7 +84,7 @@ Run: **python -m demo.run_demo hybrid**
 
 # RQ3 | Symmetric complete-path example
 
-![Corrected run_20261119_02: Symmetric RQ3 mean decryption time by failure scenario and payload size.](results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_execution_time.png)
+![Corrected run_20261119_02: Symmetric RQ3 mean decryption time by failure scenario and payload size.](demo/assets/symmetric_rq3_execution_time.png)
 
 ::: notes
 4:35–5:15. Show the corrected Symmetric RQ3 chart and read the Holm-significant counts: Hashing 0/45, Symmetric 36/75, Hybrid 17/60. The CBC-HMAC 10 MiB example was faster because this specified path rejected at MAC verification before CBC decryption: 5.592 ms compared with 9.463 ms valid, a mean paired change of −3.871 ms (adjusted p = .0075). This is a complete-path difference, not isolated authentication overhead. Faster rejection is not stronger security. These comparisons are conditional/exploratory, are affected by temporal dependence, and do not demonstrate a remote timing side channel. Non-significance is not equivalence. Transition: give the bounded conclusion.
