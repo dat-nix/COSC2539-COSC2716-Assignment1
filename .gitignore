@@ -1,0 +1,35 @@
+# Local agent instructions and private workspace metadata
+/AGENTS.md
+/.agents/
+/.aws/
+/.codex/
+/.venv/
+/REPOSITORY_AUDIT.md
+
+# Local report exports and author-specific material
+/reports/
+/asymmetric/interpretation_review.md
+/demo/AUDIT.md
+/demo/FINAL_REVIEW.md
+/scripts/export_report.sh
+
+# Python bytecode and test/build artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Local secrets and environment files
+.env
+.env.*
+!.env.example
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+.~lock.*#

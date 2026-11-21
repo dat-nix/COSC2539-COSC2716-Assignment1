@@ -84,6 +84,7 @@ libreoffice-bin --headless --convert-to pdf --outdir /tmp/cosc2539-presentation-
 - [ ] Arrange recording so both the presenter's face and the shared screen remain visible throughout.
 - [ ] Enlarge terminal text; close unrelated windows and notifications.
 - [ ] Keep the commands in separate terminal calls; do not run experiment or analysis commands.
+- [ ] Pre-open a terminal in the repository root and keep each demo command ready to paste.
 - [ ] Keep the pointer on the relevant success/rejection lines and avoid displaying key material.
 - [ ] If a live command fails, identify the fallback_outputs.txt capture as a prerecorded demonstration; do not imply it ran live.
 - [ ] Rehearse the 5:45 script and use a timer; keep the final video between 5 and 6 minutes.
@@ -92,3 +93,5 @@ libreoffice-bin --headless --convert-to pdf --outdir /tmp/cosc2539-presentation-
 ## Scope reminders
 
 The report and presentation describe the Nozomi Networks role as hypothetical academic context; this code does not connect to company, industrial, or supermarket systems. The demos show tested function, not a formal proof. Shared-key authentication does not establish an individual sender's identity. The hybrid example does not add sender authentication or replay protection. The local RQ3 timing measurements do not establish a remotely exploitable timing side channel.
+
+The title slide attributes authorship to COSC2539 Assignment 1. Its subtitle explicitly marks the Cybersecurity Research Engineer role as academic role-play; it does not imply employment or company endorsement. AES-GCM in the project also authenticates its configured associated-data context. The RSA hybrid envelope does not provide sender authentication, replay protection, or forward secrecy if its static recipient private key is later compromised.

@@ -4,6 +4,8 @@
 
 The working tree was clean before this presentation work. The final Markdown report is `reports/final/cryptography_under_adversarial_conditions.md`; its results and technical descriptions are the source of truth. The project environment at `.venv/` uses Python 3.14.10 and cryptography 50.0.2. The report records that experiment environment as CPython 3.14.10 and cryptography 50.0.2 for Symmetric and Hybrid; Hashing backend version metadata was not recorded.
 
+The title slide identifies the academic author as “COSC2539 Assignment 1.” Its subtitle labels the Cybersecurity Research Engineer scenario as academic role-play; it does not claim Nozomi Networks employment, sponsorship, or endorsement.
+
 No short, safe command-line demo existed. The existing command-line interfaces are experiment runners and write results, so this task adds a small wrapper that imports the real modules and runs only three in-memory message demonstrations. It does not use timers, result files, or experiment runners.
 
 ## Construction inventory

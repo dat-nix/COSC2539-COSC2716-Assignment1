@@ -100,14 +100,14 @@ def _fit_title_slide(xml: bytes) -> bytes:
     return text.replace(original_title_shape, title_shape, 1).encode("utf-8")
 
 
-def _style_chart_caption(xml: bytes, marker: str) -> bytes:
+def _style_chart_caption(xml: bytes, marker: str, font_size: int = 1200) -> bytes:
     text = xml.decode("utf-8")
     shapes = re.findall(r"<p:sp>.*?</p:sp>", text, flags=re.DOTALL)
     caption = next((shape for shape in shapes if marker in shape), None)
     if caption is None:
         raise SystemExit(f"Could not find chart-caption text: {marker}")
     styled_caption = re.sub(
-        r"<a:rPr\s*/>", '<a:rPr sz="1200" />', caption, count=1
+        r"<a:rPr\s*/>", f'<a:rPr sz="{font_size}" />', caption
     )
     if styled_caption == caption:
         raise SystemExit(f"Could not style chart-caption text: {marker}")
@@ -123,7 +123,9 @@ def _postprocess_presentation(path: Path) -> None:
                 content = _fit_title_slide(content)
             elif item.filename == "ppt/slides/slide6.xml":
                 content = _style_chart_caption(
-                    content, "Within-series RQ1 summary:"
+                    content,
+                    "Displayed chart: Symmetric category only.",
+                    font_size=1500,
                 )
             elif item.filename == "ppt/slides/slide8.xml":
                 content = _style_chart_caption(
