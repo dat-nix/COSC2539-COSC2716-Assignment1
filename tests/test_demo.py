@@ -1,10 +1,11 @@
-"""Functional checks for the short, presentation-only demo interface."""
+"""Functional checks for the presentation-only demo interface."""
 
 from contextlib import redirect_stdout
 from io import StringIO
 import unittest
+from unittest.mock import patch
 
-from demo.run_demo import run_hashing_demo, run_hybrid_demo, run_symmetric_demo
+from demo.run_demo import _interactive_menu, run_hashing_demo, run_hybrid_demo, run_symmetric_demo
 
 
 class PresentationDemoTests(unittest.TestCase):
@@ -14,22 +15,40 @@ class PresentationDemoTests(unittest.TestCase):
             function()
         return output.getvalue()
 
-    def test_hashing_shows_trusted_digest_rejection_and_recomputed_match(self):
+    def test_hashing_covers_all_algorithms_and_trust_boundary(self):
         output = self.capture(run_hashing_demo)
-        self.assertIn("Modified data vs trusted digest: REJECTED", output)
-        self.assertIn("attacker-recomputed digest: MATCHES", output)
+        for name in ("SHA-256", "SHA3-256", "BLAKE2b-256"):
+            self.assertIn(name, output)
+        self.assertEqual(output.count("[MISMATCH]"), 3)
+        self.assertEqual(output.count("[MATCHED]"), 3)
 
-    def test_symmetric_rejects_tampered_tag_without_plaintext(self):
+    def test_symmetric_covers_all_schemes_and_releases_no_invalid_plaintext(self):
         output = self.capture(run_symmetric_demo)
-        self.assertIn("Valid envelope: accepted; plaintext matches: True", output)
-        self.assertIn("Tampered authentication tag: REJECTED", output)
-        self.assertIn("Plaintext returned after failed authentication: False", output)
+        for name in ("AES-256-GCM", "ChaCha20-Poly1305", "AES-256-CBC + HMAC-SHA256"):
+            self.assertIn(name, output)
+        self.assertEqual(output.count("[REJECTED]"), 7)
+        self.assertEqual(output.count("plaintext=None"), 7)
+        self.assertIn("MAC verification -> CBC decryption/unpadding", output)
 
-    def test_hybrid_rejects_tampered_tag_without_plaintext(self):
+    def test_hybrid_covers_all_schemes_and_failure_stages(self):
         output = self.capture(run_hybrid_demo)
-        self.assertIn("Valid envelope: accepted; plaintext matches: True", output)
-        self.assertIn("failure stage: aes_gcm_authentication", output)
-        self.assertIn("Plaintext released after failure: False", output)
+        for name in ("RSA-OAEP + AES-256-GCM", "ECDH P-256 + HKDF + AES-GCM", "X25519 + HKDF + AES-GCM"):
+            self.assertIn(name, output)
+        self.assertEqual(output.count("[REJECTED]"), 7)
+        self.assertEqual(output.count("plaintext=None"), 7)
+        for stage in ("envelope_validation", "oaep_unwrap", "aes_gcm_authentication"):
+            self.assertIn(f"stage={stage}", output)
+
+    def test_interactive_menu_identifies_security_functions_and_can_exit(self):
+        with patch("builtins.input", return_value="q"):
+            output = self.capture(_interactive_menu)
+        self.assertIn("Hashing", output)
+        self.assertIn("Integrity checking", output)
+        self.assertIn("Symmetric encryption", output)
+        self.assertIn("Confidentiality, authentication, and tamper rejection", output)
+        self.assertIn("Hybrid encryption", output)
+        self.assertIn("Public-key key handling", output)
+        self.assertIn("No benchmark results were written", output)
 
 
 if __name__ == "__main__":

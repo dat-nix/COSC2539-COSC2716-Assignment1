@@ -12,7 +12,13 @@
 /asymmetric/interpretation_review.md
 /demo/AUDIT.md
 /demo/FINAL_REVIEW.md
-/scripts/export_report.sh
+/scripts/
+
+# Keep the public demo folder limited to the video script and live runner.
+/demo/*
+!/demo/__init__.py
+!/demo/run_demo.py
+!/demo/PRESENTATION_SCRIPT.md
 
 # Python bytecode and test/build artifacts
 __pycache__/
