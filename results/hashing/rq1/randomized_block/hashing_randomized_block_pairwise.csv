@@ -1,0 +1,1 @@
+Algorithm,Input size 1 (KiB),Input size 2 (KiB),Adjusted mean difference (seconds; size 1 minus size 2),Standard error (seconds),Bonferroni simultaneous CI low (seconds),Bonferroni simultaneous CI high (seconds),Unadjusted p-value,Holm adjusted p-value,Partial model effect (difference / residual SD)

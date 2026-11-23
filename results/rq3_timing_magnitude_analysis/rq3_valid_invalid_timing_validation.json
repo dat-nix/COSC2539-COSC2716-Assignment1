@@ -1,0 +1,499 @@
+{
+  "analysis": "Descriptive matched magnitude analysis of existing RQ3 valid-versus-specified-invalid processing timings",
+  "design_validation": {
+    "Hashing": {
+      "algorithm_or_scheme_coverage": [
+        "BLAKE2b-256",
+        "SHA-256",
+        "SHA3-256"
+      ],
+      "block_count": 30,
+      "blocks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "conditions_per_block": 45,
+      "duplicate_condition_count": 0,
+      "existing_inferential_output": {
+        "existing_paired_test_rows": 45,
+        "holm_family_size": 45,
+        "holm_significant_count_at_alpha_0_05": 0,
+        "holm_significant_fraction": "0/45",
+        "non_valid_hash_contrasts_excluded_from_magnitude_csv": 15,
+        "p_values_recalculated": false,
+        "valid_versus_invalid_rows_joined": 30
+      },
+      "expected_condition_count": 1350,
+      "extra_condition_count": 0,
+      "failure_stage_counts_by_entity_scenario": {},
+      "input_identifier_validation": {
+        "input_identifier_mismatch_groups": 0,
+        "matched_block_size_groups_checked": 150,
+        "shared_input_identity_across_algorithms_verified": true
+      },
+      "input_sizes_bytes": [
+        1024,
+        10240,
+        102400,
+        1048576,
+        10485760
+      ],
+      "magnitude_comparison_rows": 30,
+      "matched_pairs_per_comparison": {
+        "expected": 30,
+        "maximum": 30,
+        "minimum": 30
+      },
+      "missing_condition_count": 0,
+      "outcome_validation": {
+        "invalid_observations_releasing_plaintext": 0,
+        "scenario_outcomes": {
+          "modified_data_checked_against_trusted_digest": {
+            "observations": 450,
+            "tampering_detected": 450,
+            "verification_passed": 0
+          },
+          "modified_data_with_recomputed_unkeyed_digest": {
+            "observations": 450,
+            "tampering_detected": 0,
+            "verification_passed": 450
+          },
+          "valid_data_trusted_digest": {
+            "observations": 450,
+            "tampering_detected": 0,
+            "verification_passed": 450
+          }
+        }
+      },
+      "randomized_positions_complete_per_block": true,
+      "raw_row_count": 1350,
+      "scenario_coverage": [
+        "modified_data_checked_against_trusted_digest",
+        "modified_data_with_recomputed_unkeyed_digest",
+        "valid_data_trusted_digest"
+      ],
+      "unique_condition_count": 1350
+    },
+    "Hybrid": {
+      "algorithm_or_scheme_coverage": [
+        "ECDH-P256-HKDF-SHA256+AES-256-GCM",
+        "RSA-OAEP-SHA256+AES-256-GCM",
+        "X25519-HKDF-SHA256+AES-256-GCM"
+      ],
+      "block_count": 30,
+      "blocks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "conditions_per_block": 75,
+      "duplicate_condition_count": 0,
+      "existing_inferential_output": {
+        "existing_paired_test_rows": 60,
+        "holm_family_size": 60,
+        "holm_significant_count_at_alpha_0_05": 17,
+        "holm_significant_fraction": "17/60",
+        "non_valid_hash_contrasts_excluded_from_magnitude_csv": 0,
+        "p_values_recalculated": false,
+        "valid_versus_invalid_rows_joined": 60
+      },
+      "expected_condition_count": 2250,
+      "extra_condition_count": 0,
+      "failure_stage_counts_by_entity_scenario": {
+        "ECDH-P256-HKDF-SHA256+AES-256-GCM|ciphertext_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "ECDH-P256-HKDF-SHA256+AES-256-GCM|key_material_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "ECDH-P256-HKDF-SHA256+AES-256-GCM|malformed_envelope_or_public_key": {
+          "public_key_parse": 150
+        },
+        "ECDH-P256-HKDF-SHA256+AES-256-GCM|tag_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "RSA-OAEP-SHA256+AES-256-GCM|ciphertext_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "RSA-OAEP-SHA256+AES-256-GCM|key_material_tampered": {
+          "rsa_oaep_unwrap": 150
+        },
+        "RSA-OAEP-SHA256+AES-256-GCM|malformed_envelope_or_public_key": {
+          "envelope_validation": 150
+        },
+        "RSA-OAEP-SHA256+AES-256-GCM|tag_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "X25519-HKDF-SHA256+AES-256-GCM|ciphertext_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "X25519-HKDF-SHA256+AES-256-GCM|key_material_tampered": {
+          "aes_gcm_authentication": 150
+        },
+        "X25519-HKDF-SHA256+AES-256-GCM|malformed_envelope_or_public_key": {
+          "public_key_parse": 150
+        },
+        "X25519-HKDF-SHA256+AES-256-GCM|tag_tampered": {
+          "aes_gcm_authentication": 150
+        }
+      },
+      "input_identifier_validation": {
+        "input_identifier_mismatch_groups": 0,
+        "matched_block_size_groups_checked": 150,
+        "shared_input_identity_across_algorithms_verified": true
+      },
+      "input_sizes_bytes": [
+        1024,
+        10240,
+        102400,
+        1048576,
+        10485760
+      ],
+      "magnitude_comparison_rows": 60,
+      "matched_pairs_per_comparison": {
+        "expected": 30,
+        "maximum": 30,
+        "minimum": 30
+      },
+      "missing_condition_count": 0,
+      "outcome_validation": {
+        "invalid_observations_releasing_plaintext": 0,
+        "scenario_outcomes": {
+          "ciphertext_tampered": {
+            "accepted": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "key_material_tampered": {
+            "accepted": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "malformed_envelope_or_public_key": {
+            "accepted": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "tag_tampered": {
+            "accepted": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "valid": {
+            "accepted": 450,
+            "observations": 450,
+            "plaintext_released": 450
+          }
+        }
+      },
+      "randomized_positions_complete_per_block": true,
+      "raw_row_count": 2250,
+      "scenario_coverage": [
+        "ciphertext_tampered",
+        "key_material_tampered",
+        "malformed_envelope_or_public_key",
+        "tag_tampered",
+        "valid"
+      ],
+      "unique_condition_count": 2250
+    },
+    "Symmetric": {
+      "algorithm_or_scheme_coverage": [
+        "AES-256-CBC+HMAC-SHA256",
+        "AES-256-GCM",
+        "ChaCha20-Poly1305"
+      ],
+      "block_count": 30,
+      "blocks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30
+      ],
+      "conditions_per_block": 90,
+      "duplicate_condition_count": 0,
+      "existing_inferential_output": {
+        "existing_paired_test_rows": 75,
+        "holm_family_size": 75,
+        "holm_significant_count_at_alpha_0_05": 36,
+        "holm_significant_fraction": "36/75",
+        "non_valid_hash_contrasts_excluded_from_magnitude_csv": 0,
+        "p_values_recalculated": false,
+        "valid_versus_invalid_rows_joined": 75
+      },
+      "expected_condition_count": 2700,
+      "extra_condition_count": 0,
+      "failure_stage_counts_by_entity_scenario": {
+        "AES-256-CBC+HMAC-SHA256|authentication_data_tampered": {
+          "authentication": 150
+        },
+        "AES-256-CBC+HMAC-SHA256|ciphertext_tampered": {
+          "authentication": 150
+        },
+        "AES-256-CBC+HMAC-SHA256|malformed_envelope": {
+          "envelope_validation": 150
+        },
+        "AES-256-CBC+HMAC-SHA256|nonce_or_iv_tampered": {
+          "authentication": 150
+        },
+        "AES-256-CBC+HMAC-SHA256|wrong_key": {
+          "authentication": 150
+        },
+        "AES-256-GCM|authentication_data_tampered": {
+          "authentication": 150
+        },
+        "AES-256-GCM|ciphertext_tampered": {
+          "authentication": 150
+        },
+        "AES-256-GCM|malformed_envelope": {
+          "envelope_validation": 150
+        },
+        "AES-256-GCM|nonce_or_iv_tampered": {
+          "authentication": 150
+        },
+        "AES-256-GCM|wrong_key": {
+          "authentication": 150
+        },
+        "ChaCha20-Poly1305|authentication_data_tampered": {
+          "authentication": 150
+        },
+        "ChaCha20-Poly1305|ciphertext_tampered": {
+          "authentication": 150
+        },
+        "ChaCha20-Poly1305|malformed_envelope": {
+          "envelope_validation": 150
+        },
+        "ChaCha20-Poly1305|nonce_or_iv_tampered": {
+          "authentication": 150
+        },
+        "ChaCha20-Poly1305|wrong_key": {
+          "authentication": 150
+        }
+      },
+      "input_identifier_validation": {
+        "input_identifier_mismatch_groups": 0,
+        "matched_block_size_groups_checked": 150,
+        "shared_input_identity_across_algorithms_verified": true
+      },
+      "input_sizes_bytes": [
+        1024,
+        10240,
+        102400,
+        1048576,
+        10485760
+      ],
+      "magnitude_comparison_rows": 75,
+      "matched_pairs_per_comparison": {
+        "expected": 30,
+        "maximum": 30,
+        "minimum": 30
+      },
+      "missing_condition_count": 0,
+      "outcome_validation": {
+        "invalid_observations_releasing_plaintext": 0,
+        "scenario_outcomes": {
+          "authentication_data_tampered": {
+            "accepted": 0,
+            "authentication_succeeded": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "ciphertext_tampered": {
+            "accepted": 0,
+            "authentication_succeeded": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "malformed_envelope": {
+            "accepted": 0,
+            "authentication_succeeded": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "nonce_or_iv_tampered": {
+            "accepted": 0,
+            "authentication_succeeded": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          },
+          "valid": {
+            "accepted": 450,
+            "authentication_succeeded": 450,
+            "observations": 450,
+            "plaintext_released": 450
+          },
+          "wrong_key": {
+            "accepted": 0,
+            "authentication_succeeded": 0,
+            "observations": 450,
+            "plaintext_released": 0
+          }
+        }
+      },
+      "randomized_positions_complete_per_block": true,
+      "raw_row_count": 2700,
+      "scenario_coverage": [
+        "authentication_data_tampered",
+        "ciphertext_tampered",
+        "malformed_envelope",
+        "nonce_or_iv_tampered",
+        "valid",
+        "wrong_key"
+      ],
+      "unique_condition_count": 2700
+    }
+  },
+  "formulas": {
+    "aggregate_mean_ratio": "mean(invalid_time) / mean(valid_time); distinct from mean of paired ratios",
+    "descriptive_sd": "sample standard deviation (ddof=1)",
+    "paired_difference": "invalid_time_i - valid_time_i",
+    "paired_direction": "invalid - valid",
+    "paired_percentage_difference": "100 * (invalid_time_i - valid_time_i) / valid_time_i",
+    "paired_time_ratio": "invalid_time_i / valid_time_i",
+    "undefined_denominator_handling": "No timing rows are dropped. Non-positive valid or invalid times cause validation to stop before outputs are written."
+  },
+  "inferential_results": {
+    "existing_raw_and_holm_adjusted_p_values": "Copied from the specified existing paired-test CSVs without recalculation.",
+    "new_significance_tests_run": false
+  },
+  "input_files": {
+    "Hashing": {
+      "paired_test_path": "results/hashing/rq3/tampering_performance/hashing_tampering_performance_paired_tests.csv",
+      "paired_test_row_count": 45,
+      "paired_test_sha256": "337e408726c99c10ca21ff869dbfacd3975b41bac37f474215ae94e1a92814fe",
+      "raw_path": "results/hashing/rq3/tampering_performance/hashing_tampering_performance.csv",
+      "raw_row_count": 1350,
+      "raw_sha256": "77e69d599f19dafc7524a23c0e7ef0472fe9df9cf50842fecfe3468c4a46e4cf"
+    },
+    "Hybrid": {
+      "paired_test_path": "results/asymmetric/rq3/analysis/run_20261119_01/asymmetric_rq3_paired_tests.csv",
+      "paired_test_row_count": 60,
+      "paired_test_sha256": "f914f2490c2f9be2df74bb4b033d0c44c401d341b6126b5e2801eabcf146b170",
+      "raw_path": "results/asymmetric/rq3/runs/run_20261119_01/asymmetric_rq3_verification.csv",
+      "raw_row_count": 2250,
+      "raw_sha256": "bbd4a11f4bfbec1bc9470ae02a631e2672d154b334a6d010f3bcfd1197ea76aa"
+    },
+    "Symmetric": {
+      "paired_test_path": "results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_paired_tests.csv",
+      "paired_test_row_count": 75,
+      "paired_test_sha256": "103fb7ba04222f06f3cc129c68afa9f11deb6ba6f8a57cfcc6088ff14e58ed2e",
+      "raw_path": "results/symmetric/rq3/runs/run_20261119_02/symmetric_rq3_verification.csv",
+      "raw_row_count": 2700,
+      "raw_sha256": "428c62fb7321cdb868c3aa60aa3c5d88ee9bae2366689c634d8f8727c5dbc4c3"
+    }
+  },
+  "limitations": [
+    "The same valid observation is reused in several scenario contrasts for each algorithm/scheme and size; those planned contrasts are correlated. Holm adjustment addresses multiplicity but does not make the contrasts independent.",
+    "The output describes complete timed workflows, not isolated primitive or authentication costs.",
+    "Hashing's attacker-recomputed-digest scenario is a modified-data verification path that passes; attacker-side digest generation was outside the timer.",
+    "Existing dependence and assignment caveats remain applicable; no new inferential conclusion is made here."
+  ],
+  "output": {
+    "csv_path": "results/rq3_timing_magnitude_analysis/rq3_valid_invalid_timing_magnitude.csv",
+    "csv_sha256": "aec92033108b80a5ca970e29ff7f0279891ceea5d38d070a13115fbea17f7ce0",
+    "row_count": 165,
+    "rows_by_category": {
+      "Hashing": 30,
+      "Hybrid": 60,
+      "Symmetric": 75
+    }
+  },
+  "run_linkage_checks": {
+    "Hybrid": {
+      "matches_selected_authoritative_raw": true,
+      "summary_path": "results/asymmetric/rq3/analysis/run_20261119_01/asymmetric_rq3_summary.json",
+      "summary_raw_path": null,
+      "summary_raw_sha256": "bbd4a11f4bfbec1bc9470ae02a631e2672d154b334a6d010f3bcfd1197ea76aa",
+      "summary_records_raw_path": false
+    },
+    "Symmetric": {
+      "matches_selected_authoritative_raw": true,
+      "summary_path": "results/symmetric/rq3/analysis/run_20261119_03/symmetric_rq3_summary.json",
+      "summary_raw_path": "results/symmetric/rq3/runs/run_20261119_02/symmetric_rq3_verification.csv",
+      "summary_raw_sha256": "428c62fb7321cdb868c3aa60aa3c5d88ee9bae2366689c634d8f8727c5dbc4c3",
+      "summary_records_raw_path": true
+    }
+  },
+  "script": "rq3_timing_magnitude_analysis.py"
+}

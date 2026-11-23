@@ -1,0 +1,202 @@
+{
+  "all_cases_match_expectation": true,
+  "analysis_software": {
+    "cryptography": "50.0.2",
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.5",
+    "platform": "Linux-6.18.60-gentoo-dist-bin-x86_64-13th_Gen_Intel-R-_Core-TM-_i5-13420H-with-glibc2.43",
+    "python": "3.14.10 (main, Nov  5 2026, 23:57:40) [GCC 16.2.1 20260926]",
+    "scipy": "1.18.1"
+  },
+  "case_count": 90,
+  "interpretation": "These are controlled functional examples, not attack probabilities or security proofs. AEAD rejects modified nonce/ciphertext/tag at authentication. CBC-HMAC authenticates IV and ciphertext before decryption; malformed envelope fields fail validation. All public invalid-message errors are normalized.",
+  "invalid_cases_releasing_plaintext": 0,
+  "limitations": [
+    "Only the listed mutations, keys, payloads, software, and environment were tested."
+  ],
+  "raw_csv": "results/symmetric/rq2/runs/run_20261119_01/symmetric_rq2_outcomes.csv",
+  "raw_csv_sha256": "e97b3441fcb82f0ce120d6b349a45d4da4d43dcefd3da0f98e60d7420b62ce49",
+  "research_question": "How do symmetric schemes respond to tampered data and invalid ciphertext?",
+  "scenario_summary": [
+    {
+      "Algorithm": "AES-256-GCM",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 5,
+      "Observed accepted": 5,
+      "Observed rejected": 0,
+      "Plaintext released": 5,
+      "Scenario": "valid"
+    },
+    {
+      "Algorithm": "AES-256-GCM",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "ciphertext_tampered"
+    },
+    {
+      "Algorithm": "AES-256-GCM",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "authentication_data_tampered"
+    },
+    {
+      "Algorithm": "AES-256-GCM",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "nonce_or_iv_tampered"
+    },
+    {
+      "Algorithm": "AES-256-GCM",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "wrong_key"
+    },
+    {
+      "Algorithm": "AES-256-GCM",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "malformed_envelope"
+    },
+    {
+      "Algorithm": "ChaCha20-Poly1305",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 5,
+      "Observed accepted": 5,
+      "Observed rejected": 0,
+      "Plaintext released": 5,
+      "Scenario": "valid"
+    },
+    {
+      "Algorithm": "ChaCha20-Poly1305",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "ciphertext_tampered"
+    },
+    {
+      "Algorithm": "ChaCha20-Poly1305",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "authentication_data_tampered"
+    },
+    {
+      "Algorithm": "ChaCha20-Poly1305",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "nonce_or_iv_tampered"
+    },
+    {
+      "Algorithm": "ChaCha20-Poly1305",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "wrong_key"
+    },
+    {
+      "Algorithm": "ChaCha20-Poly1305",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "malformed_envelope"
+    },
+    {
+      "Algorithm": "AES-256-CBC+HMAC-SHA256",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 5,
+      "Observed accepted": 5,
+      "Observed rejected": 0,
+      "Plaintext released": 5,
+      "Scenario": "valid"
+    },
+    {
+      "Algorithm": "AES-256-CBC+HMAC-SHA256",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "ciphertext_tampered"
+    },
+    {
+      "Algorithm": "AES-256-CBC+HMAC-SHA256",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "authentication_data_tampered"
+    },
+    {
+      "Algorithm": "AES-256-CBC+HMAC-SHA256",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "nonce_or_iv_tampered"
+    },
+    {
+      "Algorithm": "AES-256-CBC+HMAC-SHA256",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "wrong_key"
+    },
+    {
+      "Algorithm": "AES-256-CBC+HMAC-SHA256",
+      "Cases": 5,
+      "Cases matching expectation": 5,
+      "Expected accepted": 0,
+      "Observed accepted": 0,
+      "Observed rejected": 5,
+      "Plaintext released": 0,
+      "Scenario": "malformed_envelope"
+    }
+  ]
+}

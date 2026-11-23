@@ -1,0 +1,48 @@
+{
+  "algorithms": [
+    "AES-256-GCM",
+    "ChaCha20-Poly1305",
+    "AES-256-CBC+HMAC-SHA256"
+  ],
+  "block_count": 30,
+  "conditions_per_block": 30,
+  "created_utc": "2026-11-18T21:27:38.627742+00:00",
+  "decryption_timing_includes": "envelope validation, authentication verification, decryption, and unpadding where applicable",
+  "encryption_timing_includes": "fresh nonce/IV generation, encryption, padding where applicable, tag/MAC generation, and in-memory envelope construction",
+  "environment": {
+    "openssl": "OpenSSL 3.6.5 29 Sep 2026",
+    "packages": {
+      "cryptography": "50.0.2",
+      "matplotlib": "3.11.2",
+      "numpy": "2.5.5",
+      "scipy": "1.18.1"
+    },
+    "platform": "Linux-6.18.60-gentoo-dist-bin-x86_64-13th_Gen_Intel-R-_Core-TM-_i5-13420H-with-glibc2.43",
+    "processor": "13th Gen Intel(R) Core(TM) i5-13420H",
+    "python": "3.14.10 (main, Nov  5 2026, 23:57:40) [GCC 16.2.1 20260926]"
+  },
+  "expected_measured_observations": 900,
+  "experiment": "symmetric RQ1 randomized complete-block benchmark",
+  "input_generation": "random.Random(seed).randbytes; generated per block and size outside timed regions; common bytes shared across algorithms",
+  "input_sizes_bytes": [
+    1024,
+    10240,
+    102400,
+    1048576,
+    10485760
+  ],
+  "key_material_written": false,
+  "measured_observations": 900,
+  "operations": [
+    "encrypt",
+    "decrypt"
+  ],
+  "random_seed": 20261119,
+  "random_seed_source": "explicit",
+  "randomization": "independently derived pseudo-random permutation of all conditions within each measured block; warm-up calls separately shuffled per block",
+  "seed_note": "Scheduling and deterministic payload generation only; cryptographic keys and nonces use OS/library CSPRNGs.",
+  "status": "complete",
+  "timing": "time.perf_counter surrounds only the scheme encrypt/decrypt call; payload generation, key generation, valid envelope preparation, result checks, and CSV/metadata writing are excluded",
+  "warmup_iterations_per_condition": 5,
+  "warmups_in_raw_csv": false
+}

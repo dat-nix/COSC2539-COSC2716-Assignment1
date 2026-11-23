@@ -8,7 +8,6 @@
 
 # Local report exports and author-specific material
 /reports/
-/results/
 /asymmetric/interpretation_review.md
 /demo/AUDIT.md
 /demo/FINAL_REVIEW.md

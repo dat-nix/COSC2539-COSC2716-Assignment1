@@ -1,0 +1,5 @@
+RQ3 asymmetric hybrid verification experiment
+Command: PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m asymmetric.adversarial_runner rq3 --output-dir results/asymmetric/rq3/runs/run_20261119_01
+Process exit code: 0
+Standard output: results/asymmetric/rq3/runs/run_20261119_01/asymmetric_rq3_verification.csv; results/asymmetric/rq3/runs/run_20261119_01/asymmetric_rq3_metadata.json
+Post-run integrity validation: 2250 rows; 30 complete blocks of 75 unique conditions; randomized positions 1-75 occur once per block; all five sizes and three schemes are present; input identifiers are shared across schemes/scenarios within each block-size group; all invalid cases reject without plaintext release; measured durations agree with monotonic endpoints.

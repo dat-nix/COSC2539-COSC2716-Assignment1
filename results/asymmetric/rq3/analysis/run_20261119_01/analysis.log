@@ -1,0 +1,5 @@
+RQ3 asymmetric hybrid statistical analysis
+Command: PYTHONDONTWRITEBYTECODE=1 MPLCONFIGDIR=/tmp/cosc2539-mpl .venv/bin/python -u -m asymmetric.statistical_analysis rq3 --input-csv results/asymmetric/rq3/runs/run_20261119_01/asymmetric_rq3_verification.csv --metadata results/asymmetric/rq3/runs/run_20261119_01/asymmetric_rq3_metadata.json --output-dir results/asymmetric/rq3/analysis/run_20261119_01 --analysis-seed 20261118
+Process exit code: 0
+Outputs: asymmetric_rq3_descriptive.csv, asymmetric_rq3_paired_tests.csv, asymmetric_rq3_diagnostics.csv, asymmetric_rq3_summary.json, asymmetric_rq3_execution_time.png
+Analysis result: 60 preplanned matched contrasts with Holm correction. A lag-1 block residual correlation diagnostic was flagged (r=0.425779, p=0.021286); inferential status is downgraded to conditional/exploratory and block-bootstrap confidence intervals are omitted.

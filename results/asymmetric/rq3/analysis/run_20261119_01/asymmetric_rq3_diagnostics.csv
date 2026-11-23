@@ -1,0 +1,14 @@
+Diagnostic,Result
+position_linear_slope_seconds_per_position,1.6696355776773207e-07
+position_linear_slope_p_value,0.6926310375278597
+position_by_condition_family_test,"{""df_den"": 29, ""df_num"": 10, ""p_value"": 0.8007868977359601, ""statistic"": 0.5998848703725173, ""wald_chi_square"": 5.998848703725173}"
+quadratic_position_test,"{""df_den"": 29, ""df_num"": 1, ""p_value"": 0.13936920802192176, ""statistic"": 2.3100449639256144, ""wald_chi_square"": 2.3100449639256144}"
+block_residual_mean_linear_trend_p_value,0.6346594290668534
+block_residual_mean_lag1_correlation,0.42577910209264885
+block_residual_mean_lag1_p_value,0.021286168638141707
+previous_condition_joint_test,"{""df_den"": 29, ""df_num"": 3, ""p_value"": 0.1367540285007972, ""statistic"": 1.994845158679017, ""wald_chi_square"": 5.984535476037051}"
+block_count,30
+independence_note,"""Thirty sequential blocks cannot establish independence; these are diagnostics, not proof."""
+randomization_test_eligible,True
+inference_status,downgraded/conditional-exploratory: diagnostic or assignment issue
+diagnostic_flags,"[""block_level_lag1_dependence_detected""]"
